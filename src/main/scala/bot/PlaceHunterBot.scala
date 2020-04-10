@@ -1,13 +1,17 @@
 package bot
 
 import cats.effect.{Async, ContextShift}
+
+import cats.syntax.flatMap._
 import cats.syntax.functor._
 import cats.syntax.applicative._
 import com.bot4s.telegram.api.declarative.{Commands, RegexCommands}
 import com.bot4s.telegram.cats.Polling
 import com.bot4s.telegram.models.Message
+import model.{ChatId, Keyboards, Token}
+import services.PlaceHunterService
 
-class PlaceHunterBot[F[_]: Async : ContextShift](token: String)
+class PlaceHunterBot[F[_]: Async : ContextShift](token: Token, placeHunterService: PlaceHunterService[F])
   extends AbstractBot[F](token)
     with Polling[F]
     with Commands[F]
@@ -21,15 +25,22 @@ class PlaceHunterBot[F[_]: Async : ContextShift](token: String)
   // Requests location
   onRegex(Keyboards.placeRegex) { implicit msg: Message =>
     _ =>
-      reply("Can you please send your current location?", replyMarkup = Keyboards.shareLocation).void
+      for {
+        _ <- placeHunterService.savePlace(ChatId(msg.chat.id), msg.text)
+        _ <- reply("Can you please send your current location?", replyMarkup = Keyboards.shareLocation)
+      } yield ()
   }
 
-  // Process all messages and reply on received location
+  // Process absolutely all messages and reply on received location
   onMessage { implicit msg: Message =>
     msg.location match {
       case Some(location) =>
-        reply(s"Thanks for your location $location", replyMarkup = Keyboards.removeKeyBoard).void
+        for {
+          info <- placeHunterService.saveLocation(ChatId(msg.chat.id), location)
+          _ <- reply(s"Thanks for your location! $info", replyMarkup = Keyboards.removeKeyBoard).void
+        } yield ()
       case None => ().pure[F]
     }
+
   }
 }

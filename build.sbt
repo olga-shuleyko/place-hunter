@@ -17,5 +17,6 @@ libraryDependencies ++= Seq(
   "org.typelevel" %% "cats-core" % catsVersion,
   "org.typelevel" %% "cats-effect" % catsVersion,
   "com.bot4s" %% "telegram-core" % "4.4.0-RC2",
-  "com.softwaremill.sttp" %% "async-http-client-backend-cats" % "1.7.2"
+  "com.softwaremill.sttp" %% "async-http-client-backend-cats" % "1.7.2",
+  "com.softwaremill.macwire" %% "macros" % "2.3.3" % "provided",
 )
