@@ -6,9 +6,11 @@ sealed trait PlaceType {
   override def toString: String = name
 }
 object PlaceType {
+
   final object Cafe extends PlaceType {
     override val name: String = "Cafe\uD83C\uDF55\uD83C\uDF73\uD83C\uDF69"
   }
+
   final object Coffee extends PlaceType {
     override val name: String = "Coffee☕️"
   }

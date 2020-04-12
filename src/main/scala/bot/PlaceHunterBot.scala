@@ -1,7 +1,6 @@
 package bot
 
 import cats.effect.{Async, ContextShift}
-
 import cats.syntax.flatMap._
 import cats.syntax.functor._
 import cats.syntax.applicative._
@@ -19,6 +18,7 @@ class PlaceHunterBot[F[_]: Async : ContextShift](token: Token, placeHunterServic
 
   // Provide a keyboard on search
   onCommand("search") { implicit msg: Message =>
+    logger.debug(s"Search command: chatID=${msg.chat.id}")
     reply("What are you looking for?", replyMarkup = Keyboards.placeTypes).void
   }
 
@@ -33,6 +33,7 @@ class PlaceHunterBot[F[_]: Async : ContextShift](token: Token, placeHunterServic
 
   // Process absolutely all messages and reply on received location
   onMessage { implicit msg: Message =>
+    logger.info(s"Received message: chatID=${msg.chat.id}, from=${msg.from}, text=${msg.text}, location=${msg.location}")
     msg.location match {
       case Some(location) =>
         for {
