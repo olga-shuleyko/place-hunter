@@ -1,5 +1,7 @@
 package model
 
+import cats.syntax.option._
+
 sealed trait PlaceType {
   def name: String
 
@@ -15,8 +17,9 @@ object PlaceType {
     override val name: String = "Coffee☕️"
   }
 
-  def parse(text: Option[String]): Option[PlaceType] = text.map {
-    case Cafe.name => Cafe
-    case Coffee.name => Coffee
+  def parse(text: Option[String]): Option[PlaceType] = text.flatMap {
+    case Cafe.name => Cafe.some
+    case Coffee.name => Coffee.some
+    case _ => none
   }
 }
