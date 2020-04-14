@@ -1,24 +1,36 @@
 import bot.PlaceHunterBot
 import cats.effect.concurrent.Ref
-import cats.effect.{Async, ContextShift, ExitCode, IO, IOApp}
+import cats.effect.{ConcurrentEffect, ContextShift, ExitCode, IO, IOApp, Resource}
 import cats.syntax.flatMap._
 import cats.syntax.functor._
 import cats.syntax.applicative._
-import model.{ChatId, SearchRequest, Token}
+import model.Credentials._
+import model.{ChatId, SearchRequest}
+import org.http4s.client.Client
+import org.http4s.client.blaze.BlazeClientBuilder
+
+import scala.concurrent.ExecutionContext.global
 
 object Launcher extends IOApp {
 
   override def run(args: List[String]): IO[ExitCode] =
-    for {
-      bot <- bot[IO]
-      _ <- bot.startPolling
-    } yield ExitCode.Success
+    createClient[IO]().use { client =>
+      for {
+        bot <- bot[IO](client)
+        _ <- bot.startPolling
+      } yield ExitCode.Success
+    }
 
+  private def createClient[F[_]: ConcurrentEffect](): Resource[F, Client[F]] =
+    BlazeClientBuilder[F](global).resource
 
-  def bot[F[_]: Async: ContextShift]: F[PlaceHunterBot[F]] =
+  private def bot[F[_] : ConcurrentEffect : ContextShift](client: Client[F]): F[PlaceHunterBot[F]] =
     for {
       token <- System.getenv("PLACE_HUNTER_BOT_TOKEN").pure[F]
+      appId <- System.getenv("DEVELOPER_HERE_APP_ID").pure[F]
+      apiKey <- System.getenv("DEVELOPER_HERE_API_KEY").pure[F]
+      credentials = BotKeys(BotToken(token), PlacesAPIApp(appId), PlacesAPIKey(apiKey))
       requests <- Ref.of[F, Map[ChatId, SearchRequest]](Map.empty[ChatId, SearchRequest])
-      mod <- new BotModule[F](Token(token), requests).pure[F]
+      mod <- new BotModule[F](BotToken(token), requests, client, credentials).pure[F]
     } yield mod.bot
 }
