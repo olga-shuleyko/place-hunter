@@ -42,7 +42,7 @@ object GooglePlacesResponseModel {
                           vicinity: String
                          )
 
-  final case class SearchResponse(status: Status, results: List[Result])
+  final case class SearchResponse(status: Status, results: List[Result], nextPageToken: Option[String])
 
   implicit val config: Configuration = Configuration.default.withSnakeCaseMemberNames
 
