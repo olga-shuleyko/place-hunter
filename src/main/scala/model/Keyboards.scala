@@ -7,11 +7,16 @@ import model.PlaceType._
 import scala.util.matching.Regex
 
 object Keyboards {
-  val placeRegex: Regex = List(Cafe.name, Coffee.name, FastFood.name).mkString("|").r
-  val placeTypes = keyboard(KeyboardButton(Cafe.name), KeyboardButton(Coffee.name), KeyboardButton(FastFood.name))
-  val shareLocation = keyboard(KeyboardButton("Send my current location", requestLocation = true.some))
+  val placeRegex: Regex = places.mkString("|").r
+  val placeTypes = keyboard(
+    places
+      .map(place => KeyboardButton(place.name))
+      .grouped(3)
+      .toList
+  )
+  val shareLocation = keyboard(List(List(KeyboardButton("Send my current location", requestLocation = true.some))))
   val removeKeyBoard = ReplyKeyboardRemove().some
 
-  def keyboard(buttons: KeyboardButton*): Option[ReplyKeyboardMarkup] =
-    ReplyKeyboardMarkup(Seq(buttons.toSeq)).some
+  def keyboard(buttons: List[List[KeyboardButton]]): Option[ReplyKeyboardMarkup] =
+    ReplyKeyboardMarkup(buttons).some
 }

@@ -1,6 +1,6 @@
 package places.api
 
-import model.ResponseModel.SearchResponse
+import model.GooglePlacesResponseModel.SearchResponse
 import model.{ChatId, SearchRequest}
 
 trait PlacesAPI[F[_]] {

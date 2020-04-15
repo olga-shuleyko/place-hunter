@@ -1,0 +1,457 @@
+{
+  "html_attributions": [],
+  "results": [
+    {
+      "geometry": {
+        "location": {
+          "lat": 53.93846569999999,
+          "lng": 27.47349680000001
+        },
+        "viewport": {
+          "northeast": {
+            "lat": 53.9397359802915,
+            "lng": 27.4749635302915
+          },
+          "southwest": {
+            "lat": 53.93703801970851,
+            "lng": 27.4722655697085
+          }
+        }
+      },
+      "icon": "https://maps.gstatic.com/mapfiles/place_api/icons/restaurant-71.png",
+      "id": "9d0afb6be23d2a6de086c615c92bd2afc0b57195",
+      "name": "Terra Pizza-Лебяжий",
+      "opening_hours": {
+        "open_now": true
+      },
+      "photos": [
+        {
+          "height": 1067,
+          "html_attributions": [
+            "\u003ca href=\"https://maps.google.com/maps/contrib/112320287328201523487\"\u003eTerra Pizza-Лебяжий\u003c/a\u003e"
+          ],
+          "photo_reference": "CmRaAAAAOreCWSYmaPTAKggpQJ6yOQyEGEJw5WAxdCF58N5AkQtxKiv1ipgCi-qIUG54TZ60fSrU48yk0SqnSGh2nwFR5-SB3dEeq-EUnlqZnZEFakEryw576JdSggClGOBPkrs0EhAY5sa2mvjWhCuywx3GH2iYGhTRX6fwXJGoEWQNKBouewoweW4A_g",
+          "width": 1600
+        }
+      ],
+      "place_id": "ChIJzWHbseLE20YRmwrbQ2cVn-g",
+      "plus_code": {
+        "compound_code": "WFQF+99 Minsk, Belarus",
+        "global_code": "9G59WFQF+99"
+      },
+      "price_level": 2,
+      "rating": 4.4,
+      "reference": "ChIJzWHbseLE20YRmwrbQ2cVn-g",
+      "scope": "GOOGLE",
+      "types": [
+        "restaurant",
+        "cafe",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "user_ratings_total": 292,
+      "vicinity": "Prospekte Pobeditelei 119, Minsk"
+    },
+    {
+      "geometry": {
+        "location": {
+          "lat": 53.9383557,
+          "lng": 27.4739581
+        },
+        "viewport": {
+          "northeast": {
+            "lat": 53.9397463802915,
+            "lng": 27.4753370302915
+          },
+          "southwest": {
+            "lat": 53.9370484197085,
+            "lng": 27.4726390697085
+          }
+        }
+      },
+      "icon": "https://maps.gstatic.com/mapfiles/place_api/icons/restaurant-71.png",
+      "id": "3bd803e310e4cc3227989054f2371793386f3e88",
+      "name": "Litviny",
+      "opening_hours": {
+        "open_now": true
+      },
+      "photos": [
+        {
+          "height": 1280,
+          "html_attributions": [
+            "\u003ca href=\"https://maps.google.com/maps/contrib/111827903915723359822\"\u003eЛитвины\u003c/a\u003e"
+          ],
+          "photo_reference": "CmRaAAAAJGNwFaI3X_zkpfNjARbea1OtDWVcavnJM4f9YJM9MDFzQI-Nn_UGggePfp6_n8CbcOw3aK9OAcS9DgCI_G6tgbuGttbTnp92e9EYzuYsPactmMmhDIuuNnyWZnLOjykfEhB1ziuLC2vdKNvtSNHYwBABGhSWkv9GonmWhTBo4V7e6Q04MISiCQ",
+          "width": 1920
+        }
+      ],
+      "place_id": "ChIJrSBiSv3E20YRVzE8HHD_mQ0",
+      "plus_code": {
+        "compound_code": "WFQF+8H Minsk, Belarus",
+        "global_code": "9G59WFQF+8H"
+      },
+      "price_level": 2,
+      "rating": 4.5,
+      "reference": "ChIJrSBiSv3E20YRVzE8HHD_mQ0",
+      "scope": "GOOGLE",
+      "types": [
+        "restaurant",
+        "cafe",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "user_ratings_total": 1537,
+      "vicinity": "Prospekte Pobeditelei 119, Minsk"
+    },
+    {
+      "geometry": {
+        "location": {
+          "lat": 53.94298999999999,
+          "lng": 27.4652909
+        },
+        "viewport": {
+          "northeast": {
+            "lat": 53.9441993302915,
+            "lng": 27.4664496302915
+          },
+          "southwest": {
+            "lat": 53.9415013697085,
+            "lng": 27.4637516697085
+          }
+        }
+      },
+      "icon": "https://maps.gstatic.com/mapfiles/place_api/icons/restaurant-71.png",
+      "id": "b0db1654781d97947be1c7e7fa98ea2998335424",
+      "name": "Urartu",
+      "opening_hours": {
+        "open_now": true
+      },
+      "photos": [
+        {
+          "height": 3840,
+          "html_attributions": [
+            "\u003ca href=\"https://maps.google.com/maps/contrib/110290563843949393549\"\u003eViacheslav Shalamov\u003c/a\u003e"
+          ],
+          "photo_reference": "CmRaAAAA_pyidFtFZEjNyw-61JFyLAmP4tUydC4hk_rPYkce_nntVYaXAnxnvR25PLDv5kjvTse6NllmzztHJx3v_Vb1rXbhrQzAe9FT0HS0Q9RWgHQl6JZgujsfG8hHDenAl1YAEhBDZFCydcSB2Xgu6Vvl8UU_GhSap6m53JTaJwqs8c7jWZ8PqbsTpA",
+          "width": 5760
+        }
+      ],
+      "place_id": "ChIJR0lkBPvE20YRWu8J5f9LkiI",
+      "plus_code": {
+        "compound_code": "WFV8+54 Minsk, Belarus",
+        "global_code": "9G59WFV8+54"
+      },
+      "price_level": 2,
+      "rating": 4.3,
+      "reference": "ChIJR0lkBPvE20YRWu8J5f9LkiI",
+      "scope": "GOOGLE",
+      "types": [
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "user_ratings_total": 597,
+      "vicinity": "Prospekte Pobeditelei 114, Minsk"
+    },
+    {
+      "geometry": {
+        "location": {
+          "lat": 53.9382288,
+          "lng": 27.4721705
+        },
+        "viewport": {
+          "northeast": {
+            "lat": 53.9396075802915,
+            "lng": 27.4734230302915
+          },
+          "southwest": {
+            "lat": 53.93690961970851,
+            "lng": 27.4707250697085
+          }
+        }
+      },
+      "icon": "https://maps.gstatic.com/mapfiles/place_api/icons/restaurant-71.png",
+      "id": "d9d62fb1b996a3bcb8acfd8f156beb5ae3e1b030",
+      "name": "Bonfood",
+      "opening_hours": {
+        "open_now": true
+      },
+      "photos": [
+        {
+          "height": 4000,
+          "html_attributions": [
+            "\u003ca href=\"https://maps.google.com/maps/contrib/111029146636323994715\"\u003eBonfood\u003c/a\u003e"
+          ],
+          "photo_reference": "CmRaAAAAqikx8diZeSgflgxUnppQXyQu40uh-YqOhT9ID5QVBTCco_cQWzrNSmMvbE2PieB_ylnBbAasFCXqEC5b2_PIi83z_9FVE5nhsxEBGAojQu6WKarLqDJpICp7sOKto3MtEhApQYlQlQ7-wLhxbM1An9h2GhRNEMEX7gAobp40QXTgb40ODVLZUA",
+          "width": 6000
+        }
+      ],
+      "place_id": "ChIJlceu-BvF20YR5DvqRCTqX20",
+      "plus_code": {
+        "compound_code": "WFQC+7V Minsk, Belarus",
+        "global_code": "9G59WFQC+7V"
+      },
+      "rating": 5,
+      "reference": "ChIJlceu-BvF20YR5DvqRCTqX20",
+      "scope": "GOOGLE",
+      "types": [
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "user_ratings_total": 2,
+      "vicinity": "Prospekte Pobeditelei 119, Minsk"
+    },
+    {
+      "geometry": {
+        "location": {
+          "lat": 53.93939719999999,
+          "lng": 27.4776943
+        },
+        "viewport": {
+          "northeast": {
+            "lat": 53.94085613029149,
+            "lng": 27.4789824302915
+          },
+          "southwest": {
+            "lat": 53.9381581697085,
+            "lng": 27.4762844697085
+          }
+        }
+      },
+      "icon": "https://maps.gstatic.com/mapfiles/place_api/icons/restaurant-71.png",
+      "id": "9c2e5df2283b597f0983b243a539d289aa27a04a",
+      "name": "Bloom Eatery",
+      "opening_hours": {
+        "open_now": true
+      },
+      "photos": [
+        {
+          "height": 1333,
+          "html_attributions": [
+            "\u003ca href=\"https://maps.google.com/maps/contrib/102163064146315798778\"\u003eBloom Eatery\u003c/a\u003e"
+          ],
+          "photo_reference": "CmRaAAAAtyv5v66VF0G6Sbyio1eM7Mi5xOsWm7ol_KWUB-gPmD7JL86W8Ue9o_uEE9NC2Ol8UUJhovCRWk6EF6DntIohfjM100-SLZ7bftVpMva1UXrIdOpcQxlcqxV-HSsp0EGXEhBvhgYL_w0spvJcdoe7MmFzGhRbzPRLRDY-mFGNQVfiLgTBsddLsA",
+          "width": 2000
+        }
+      ],
+      "place_id": "ChIJwe89sDzF20YRz_X-P2OpfhI",
+      "plus_code": {
+        "compound_code": "WFQH+Q3 Minsk, Belarus",
+        "global_code": "9G59WFQH+Q3"
+      },
+      "rating": 4.6,
+      "reference": "ChIJwe89sDzF20YRz_X-P2OpfhI",
+      "scope": "GOOGLE",
+      "types": [
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "user_ratings_total": 17,
+      "vicinity": "Prospekte Pobeditelei 110, Minsk"
+    },
+    {
+      "geometry": {
+        "location": {
+          "lat": 53.9392922,
+          "lng": 27.4782029
+        },
+        "viewport": {
+          "northeast": {
+            "lat": 53.9406005302915,
+            "lng": 27.4795567302915
+          },
+          "southwest": {
+            "lat": 53.9379025697085,
+            "lng": 27.4768587697085
+          }
+        }
+      },
+      "icon": "https://maps.gstatic.com/mapfiles/place_api/icons/restaurant-71.png",
+      "id": "a46310dea18865696b64f468c9c1dc9bea075558",
+      "name": "Brioche Bistro / Бриош Бистро",
+      "opening_hours": {
+        "open_now": true
+      },
+      "photos": [
+        {
+          "height": 3024,
+          "html_attributions": [
+            "\u003ca href=\"https://maps.google.com/maps/contrib/105723981642520894064\"\u003eValery Yermalitsky\u003c/a\u003e"
+          ],
+          "photo_reference": "CmRaAAAAI91ii1GBlMkBMDNTKkbzdPy2nw2qHO_ARqsMIiNXA_WdMGf7yfs2pr935OTh-Msdp57DpbrdEef-uki_q6HcIzZ6IWTMTmQT7lm6_aDzTslytKKmYN4TAaCDUJCnTjdZEhBlu0wJqHWH8G7KTg-hb7JNGhQzmV_S94FHUouLuvcKxBe93byNKg",
+          "width": 4032
+        }
+      ],
+      "place_id": "ChIJo-uXlALF20YRZaNfQrWafw8",
+      "plus_code": {
+        "compound_code": "WFQH+P7 Minsk, Belarus",
+        "global_code": "9G59WFQH+P7"
+      },
+      "price_level": 3,
+      "rating": 4.5,
+      "reference": "ChIJo-uXlALF20YRZaNfQrWafw8",
+      "scope": "GOOGLE",
+      "types": [
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "user_ratings_total": 337,
+      "vicinity": "Prospekte Pobeditelei 106, Minsk"
+    },
+    {
+      "geometry": {
+        "location": {
+          "lat": 53.9383741,
+          "lng": 27.4791026
+        },
+        "viewport": {
+          "northeast": {
+            "lat": 53.93972308029149,
+            "lng": 27.4804515802915
+          },
+          "southwest": {
+            "lat": 53.9370251197085,
+            "lng": 27.47775361970849
+          }
+        }
+      },
+      "icon": "https://maps.gstatic.com/mapfiles/place_api/icons/restaurant-71.png",
+      "id": "5412b7fade6719a88a6e715d7d3a2b77fa746f31",
+      "name": "Mac Pizza",
+      "photos": [
+        {
+          "height": 883,
+          "html_attributions": [
+            "\u003ca href=\"https://maps.google.com/maps/contrib/110519120675107576470\"\u003eALES FOOD . обзоры доставок еды\u003c/a\u003e"
+          ],
+          "photo_reference": "CmRaAAAAfm9staDJxeDMZmbtMLn_PcdWWf3pPWBoaf4zZ8vAMm3Jw8pll8xlwH4nIWN4ynZsHuSzrv3dGiGE5Y0WM-EaS7rEXmdHvvM83fytKEQCA2IKVQfeXtUDswFdZSk2Sc4MEhAdBbZ_mwgYrmNSmMN8LjAbGhSNW7rNFMtFn_KUapD4G4hMxnE1JQ",
+          "width": 883
+        }
+      ],
+      "place_id": "ChIJnVZx3ALF20YRa49gDi6xAUs",
+      "plus_code": {
+        "compound_code": "WFQH+8J Minsk, Belarus",
+        "global_code": "9G59WFQH+8J"
+      },
+      "rating": 3.8,
+      "reference": "ChIJnVZx3ALF20YRa49gDi6xAUs",
+      "scope": "GOOGLE",
+      "types": [
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "user_ratings_total": 15,
+      "vicinity": "Prospekte Pobeditelei 102, Minsk"
+    },
+    {
+      "geometry": {
+        "location": {
+          "lat": 53.93937939999999,
+          "lng": 27.4794224
+        },
+        "viewport": {
+          "northeast": {
+            "lat": 53.9406271802915,
+            "lng": 27.4807514302915
+          },
+          "southwest": {
+            "lat": 53.9379292197085,
+            "lng": 27.4780534697085
+          }
+        }
+      },
+      "icon": "https://maps.gstatic.com/mapfiles/place_api/icons/restaurant-71.png",
+      "id": "d3ec0cd68a9e49907a18c63643c8ac58f59ce694",
+      "name": "Grand Courchevel",
+      "opening_hours": {
+        "open_now": true
+      },
+      "photos": [
+        {
+          "height": 3000,
+          "html_attributions": [
+            "\u003ca href=\"https://maps.google.com/maps/contrib/113327460710027260757\"\u003eАлександр Воронкович\u003c/a\u003e"
+          ],
+          "photo_reference": "CmRaAAAAF4M4mEPRGtghaUyT8_cY_wdG_YBFrmz-Y--cL9BTEQqs4YrWT6Q3tJjTCYBVkqHwUh_bJC-rQ8MFCBZ1chQ2PFW3DrKVDcwjq5E3blSCmxvvT4ZReCxTaa2mo7ic49G9EhC0GCX1zGojxxpBNrzNLQ_yGhT-iER9_uVhN2tcx9NnNieJIu-s2w",
+          "width": 4000
+        }
+      ],
+      "place_id": "ChIJrW76CAXF20YRJTY6B5IFC_Y",
+      "plus_code": {
+        "compound_code": "WFQH+QQ Minsk, Belarus",
+        "global_code": "9G59WFQH+QQ"
+      },
+      "price_level": 3,
+      "rating": 3.9,
+      "reference": "ChIJrW76CAXF20YRJTY6B5IFC_Y",
+      "scope": "GOOGLE",
+      "types": [
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "user_ratings_total": 479,
+      "vicinity": "Prospekte Pobeditelei 104, Minsk"
+    },
+    {
+      "geometry": {
+        "location": {
+          "lat": 53.9334384,
+          "lng": 27.4778357
+        },
+        "viewport": {
+          "northeast": {
+            "lat": 53.93479148029149,
+            "lng": 27.4791408302915
+          },
+          "southwest": {
+            "lat": 53.93209351970849,
+            "lng": 27.4764428697085
+          }
+        }
+      },
+      "icon": "https://maps.gstatic.com/mapfiles/place_api/icons/restaurant-71.png",
+      "id": "d8369eb2b1989ba2709aa8ad78215e4569411d07",
+      "name": "Ресторан",
+      "photos": [
+        {
+          "height": 4032,
+          "html_attributions": [
+            "\u003ca href=\"https://maps.google.com/maps/contrib/114238967734616187746\"\u003eBorys Pratsiuk\u003c/a\u003e"
+          ],
+          "photo_reference": "CmRaAAAAXfXztE1HyUHKsaVsylFuwdtMZE1mEU994uDeypzl5p33H133JDn59noAltMS9YPJeO110M8K9-5cYi4NQEXn_FCXHbMgPsp6a4-rDVHBXSTviVvgSknnva4CO7NOspNBEhCgQt3mw5uR90xmXHZPb76FGhRuTKVIBfMTzzu-UvRrre1UMJMr-w",
+          "width": 3024
+        }
+      ],
+      "place_id": "ChIJWT4SbBzF20YR6kwRTxSNgsY",
+      "plus_code": {
+        "compound_code": "WFMH+94 Minsk, Belarus",
+        "global_code": "9G59WFMH+94"
+      },
+      "rating": 5,
+      "reference": "ChIJWT4SbBzF20YR6kwRTxSNgsY",
+      "scope": "GOOGLE",
+      "types": [
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+      ],
+      "user_ratings_total": 2,
+      "vicinity": "Belarus"
+    }
+  ],
+  "status": "OK"
+}

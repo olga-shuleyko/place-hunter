@@ -1,7 +1,7 @@
 package services
 
 import com.bot4s.telegram.models.Location
-import model.ResponseModel.SearchResponse
+import model.GooglePlacesResponseModel.SearchResponse
 import model.{ChatId, SearchRequest}
 
 trait PlaceHunterService[F[_]] {

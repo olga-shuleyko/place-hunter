@@ -21,15 +21,14 @@ object Launcher extends IOApp {
       } yield ExitCode.Success
     }
 
-  private def createClient[F[_]: ConcurrentEffect](): Resource[F, Client[F]] =
+  private def createClient[F[_] : ConcurrentEffect](): Resource[F, Client[F]] =
     BlazeClientBuilder[F](global).resource
 
   private def bot[F[_] : ConcurrentEffect : ContextShift](client: Client[F]): F[PlaceHunterBot[F]] =
     for {
       token <- System.getenv("PLACE_HUNTER_BOT_TOKEN").pure[F]
-      appId <- System.getenv("DEVELOPER_HERE_APP_ID").pure[F]
-      apiKey <- System.getenv("DEVELOPER_HERE_API_KEY").pure[F]
-      credentials = BotKeys(BotToken(token), PlacesAPIApp(appId), PlacesAPIKey(apiKey))
+      apiKey <- System.getenv("GOOGLE_API_KEY").pure[F]
+      credentials = BotKeys(BotToken(token), PlacesAPIKey(apiKey))
       requests <- Ref.of[F, Map[ChatId, SearchRequest]](Map.empty[ChatId, SearchRequest])
       mod <- new BotModule[F](BotToken(token), requests, client, credentials).pure[F]
     } yield mod.bot

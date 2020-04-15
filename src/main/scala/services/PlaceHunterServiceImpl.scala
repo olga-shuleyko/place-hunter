@@ -7,7 +7,7 @@ import repositories.SearchRequestRepository
 import cats.syntax.flatMap._
 import cats.syntax.functor._
 import model.ClientError.PlaceTypeIsIncorrect
-import model.ResponseModel.SearchResponse
+import model.GooglePlacesResponseModel.SearchResponse
 import places.api.PlacesAPI
 
 class PlaceHunterServiceImpl[F[_]: MonadError[*[_], Throwable]](requestRepository: SearchRequestRepository[F],
