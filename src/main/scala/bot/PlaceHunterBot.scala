@@ -12,6 +12,7 @@ import com.bot4s.telegram.models.Message
 import model.Credentials.BotToken
 import model.{ChatId, Keyboards}
 import services.PlaceHunterService
+import util.BotQuestions
 
 class PlaceHunterBot[F[_]: Async : ContextShift](token: BotToken,
                                                  placeHunterService: PlaceHunterService[F])
@@ -23,16 +24,27 @@ class PlaceHunterBot[F[_]: Async : ContextShift](token: BotToken,
   // Provide a keyboard on search
   onCommand("search") { implicit msg: Message =>
     logger.debug(s"Search command: chatID=${msg.chat.id}")
-    reply("What are you looking for?", replyMarkup = Keyboards.placeTypes).void
+    reply(BotQuestions.place, replyMarkup = Keyboards.placeTypes).void
   }
 
-  // Requests location
+  // Requests distance
   onRegex(Keyboards.placeRegex) { implicit msg: Message =>
     _ =>
       adaptError {
         for {
           _ <- placeHunterService.savePlace(ChatId(msg.chat.id), msg.text)
-          _ <- reply("Can you please send your current location?", replyMarkup = Keyboards.shareLocation)
+          _ <- reply(BotQuestions.distance, replyMarkup = Keyboards.distance)
+        } yield ()
+      }
+  }
+
+  // Requests location
+  onRegex(Keyboards.distancesRegex) { implicit msg: Message =>
+    _ =>
+      adaptError {
+        for {
+          _ <- placeHunterService.saveDistance(ChatId(msg.chat.id), msg.text)
+          _ <- reply(BotQuestions.location, replyMarkup = Keyboards.shareLocation)
         } yield ()
       }
   }
@@ -46,6 +58,7 @@ class PlaceHunterBot[F[_]: Async : ContextShift](token: BotToken,
         adaptError {
           for {
             searchRequest <- placeHunterService.saveLocation(chatId, location)
+            _ <- logger.info(s"ChatId=$chatId, Search request is $searchRequest").pure[F]
             response <- placeHunterService.searchForPlaces(chatId, searchRequest)
             _ <- replyMd(response.show, replyMarkup = Keyboards.removeKeyBoard).void
           } yield ()

@@ -37,4 +37,5 @@ libraryDependencies ++= Seq(
   "org.slf4j" % "slf4j-simple" % slf4jVersion,
   "org.scalatest" %% "scalatest" % "3.1.1" % Test,
   "org.scalamock" %% "scalamock" % "4.4.0" % Test,
+  "com.propensive" %% "kaleidoscope" % "0.1.0",
 )

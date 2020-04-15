@@ -17,6 +17,12 @@ object Keyboards {
   val shareLocation = keyboard(List(List(KeyboardButton("Send my current location", requestLocation = true.some))))
   val removeKeyBoard = ReplyKeyboardRemove().some
 
+  val distances = List("Up to 0.5km", "Up to 1km", "Up to 2km")
+  val distancesRegex: Regex = "Up to ([0-9.]+)k?+m".r
+  val distance = keyboard(
+    distances.map(distance => List(KeyboardButton(distance)))
+  )
+
   def keyboard(buttons: List[List[KeyboardButton]]): Option[ReplyKeyboardMarkup] =
     ReplyKeyboardMarkup(buttons).some
 }

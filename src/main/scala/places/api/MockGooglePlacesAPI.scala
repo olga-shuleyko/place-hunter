@@ -17,11 +17,9 @@ import collection.JavaConverters._
 class MockGooglePlacesAPI[F[_]: Sync](decoder: Decoder[SearchResponse])
   extends PlacesAPI[F] {
 
-  lazy val lines: F[List[String]] = readLinesFromFile(new File("google_output.json"))
-
   override def explorePlaces(chatId: ChatId, searchRequest: SearchRequest): F[SearchResponse] = {
     val ME = MonadError[F, Throwable]
-    lines.flatMap { lines =>
+    readLinesFromFile(new File("google_output.json")).flatMap { lines =>
       decode[SearchResponse](lines.mkString)(decoder).fold(
         error => ME.raiseError[SearchResponse](ParseError(chatId, error.getMessage)),
         (res: SearchResponse) => ME.pure(res)

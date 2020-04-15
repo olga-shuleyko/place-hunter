@@ -79,4 +79,22 @@ class PlaceHunterServiceImplSpec
       .failure
       .exception should have message s"Search Record is missing for $chatId."
   }
+
+  "Save Distance" should "save a correct distance" in {
+    val chatId = Instances.genChatID()
+
+    sut.saveDistance(chatId, "Up to 2km".some)
+
+    (requestRepository.saveDistance _).verify(chatId, 2000)
+  }
+
+  it should "throw Distance Is Incorrect exception when save a wrong place" in {
+    val chatId = Instances.genChatID()
+
+    sut.saveDistance(chatId, "Up to km".some)
+      .failure
+      .exception should have message s"Distance is incorrect for $chatId."
+
+    (requestRepository.savePlace _).verify(*, *).never()
+  }
 }

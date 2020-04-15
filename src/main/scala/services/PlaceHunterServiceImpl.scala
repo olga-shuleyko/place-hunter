@@ -2,13 +2,14 @@ package services
 
 import cats.MonadError
 import com.bot4s.telegram.models.Location
-import model.{ChatId, PlaceType, SearchRequest}
+import model.{ChatId, Distance, PlaceType, SearchRequest}
 import repositories.SearchRequestRepository
 import cats.syntax.flatMap._
 import cats.syntax.functor._
-import model.ClientError.PlaceTypeIsIncorrect
+import model.ClientError.{DistanceIsIncorrect, PlaceTypeIsIncorrect}
 import model.GooglePlacesResponseModel.SearchResponse
 import places.api.PlacesAPI
+
 
 class PlaceHunterServiceImpl[F[_]: MonadError[*[_], Throwable]](requestRepository: SearchRequestRepository[F],
                                                                 placesApi: PlacesAPI[F])
@@ -33,5 +34,13 @@ class PlaceHunterServiceImpl[F[_]: MonadError[*[_], Throwable]](requestRepositor
       response <- placesApi.explorePlaces(chatId, searchRequest)
       _ <- requestRepository.clearRequest(chatId)
     } yield response
+  }
+
+  override def saveDistance(chatId: ChatId, msgText: Option[String]): F[Unit] = {
+    val ME = MonadError[F, Throwable]
+
+    Distance.parse(msgText)
+      .map(radius => requestRepository.saveDistance(chatId, radius))
+      .fold(ME.raiseError[Unit](DistanceIsIncorrect(chatId)))(identity)
   }
 }

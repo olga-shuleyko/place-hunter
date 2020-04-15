@@ -38,4 +38,15 @@ class InMemorySearchRepository[F[_] : MonadError[*[_], Throwable]](val requests:
 
   private def raiseMissingRecord(chatId: ChatId)(implicit ME: MonadError[F, Throwable]): F[SearchRequest] =
     ME.raiseError[SearchRequest](SearchRecordIsMissing(chatId))
+
+  override def saveDistance(chatId: ChatId, distance: Double): F[Unit] = {
+    val ME = MonadError[F, Throwable]
+    for {
+      requestsMap <- requests.get
+      searchRequestOpt = requestsMap.get(chatId)
+      searchRequest <- searchRequestOpt.fold(raiseMissingRecord(chatId))(record => ME.pure(record.copy(radius = distance)))
+      _ <- requests.update(_ + (chatId -> searchRequest))
+    } yield ()
+  }
+
 }
