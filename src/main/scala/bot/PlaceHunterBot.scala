@@ -5,6 +5,7 @@ import cats.syntax.flatMap._
 import cats.syntax.functor._
 import cats.syntax.applicativeError._
 import cats.syntax.applicative._
+import cats.syntax.show._
 import com.bot4s.telegram.api.declarative.{Commands, RegexCommands}
 import com.bot4s.telegram.cats.Polling
 import com.bot4s.telegram.models.Message
@@ -46,7 +47,7 @@ class PlaceHunterBot[F[_]: Async : ContextShift](token: BotToken,
           for {
             searchRequest <- placeHunterService.saveLocation(chatId, location)
             response <- placeHunterService.searchForPlaces(chatId, searchRequest)
-            _ <- reply(s"Thanks for your location! ${response.results.take(5)}", replyMarkup = Keyboards.removeKeyBoard).void
+            _ <- replyMd(response.show, replyMarkup = Keyboards.removeKeyBoard).void
           } yield ()
         }
       case None => ().pure[F]
