@@ -62,6 +62,7 @@ class PlaceHunterBot[F[_]: Async : ContextShift](token: BotToken,
             response <- placeHunterService.searchForPlaces(chatId, searchRequest)
             messageToReply = if (response.results.isEmpty)
               BotQuestions.nothingToRecommend else BotQuestions.recommends + response.show
+            _ <- logger.info(s"ChatId=$chatId, Search result is $messageToReply").pure[F]
             _ <- replyMd(messageToReply, replyMarkup = Keyboards.removeKeyBoard).void
           } yield ()
         }
