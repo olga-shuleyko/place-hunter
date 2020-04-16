@@ -33,7 +33,7 @@ class PlaceHunterServiceImpl[F[_]: MonadError[*[_], Throwable]](requestRepositor
     for {
       response <- placesApi.explorePlaces(chatId, searchRequest)
       _ <- requestRepository.clearRequest(chatId)
-    } yield response
+    } yield response.sortedByRating
   }
 
   override def saveDistance(chatId: ChatId, msgText: Option[String]): F[Unit] = {

@@ -41,9 +41,24 @@ object GooglePlacesResponseModel {
                           rating: Option[Double],
                           types: List[String],
                           userRatingsTotal: Option[Int],
-                          vicinity: String)
+                          vicinity: String) {
 
-  final case class SearchResponse(status: Status, results: List[Result], nextPageToken: Option[String])
+    lazy val extractRating: Option[(Double, Int)] =
+      for {
+        xRating <- this.rating
+        xReview <- this.userRatingsTotal
+      } yield (xRating, xReview)
+
+    // Bot's rating of the place is calculated from the rating and number of reviews
+    lazy val coefficient: Option[Double] =
+      this.extractRating.map {
+        case (xRating, xReviews) => Math.pow(xRating / 3, 2) * Math.log10(xReviews)
+      }
+  }
+
+  final case class SearchResponse(status: Status, results: List[Result], nextPageToken: Option[String] = None) {
+    def sortedByRating: SearchResponse = this.copy(results = this.results.sortBy(_.coefficient)(OptionDoubleOrdering))
+  }
 
   implicit val config: Configuration = Configuration.default.withSnakeCaseMemberNames
 
@@ -65,26 +80,40 @@ object GooglePlacesResponseModel {
   implicit val SearchResponseDecoder: Decoder[SearchResponse] = deriveDecoder[SearchResponse]
   implicit val SearchResponseEncoder: Encoder[SearchResponse] = deriveEncoder[SearchResponse]
 
+  private val placeIsOpen = "\nOpen now"
+  private val placeIsClosed = "\nClosed now"
+  private val reviews = " reviews"
+  private val without = "no "
+  private val money = "\uD83D\uDCB0"
+  private val star = "⭐️"
+
   implicit val showResult: Show[Result] = Show.show { res =>
-    val rating = res.rating.fold("without rating")(value => "with rating " + value + "⭐️" * Math.round(value).toInt)
-    val reviews = res.userRatingsTotal.fold("without reviews")(value => s"with $value reviews")
-    val priceLevel = res.priceLevel.fold("")(value => "The Price level is " + "\uD83D\uDCB5" * value + ".")
-    val isOpened = res.openingHours.fold("") { value =>
-      val status = if (value.openNow) "open." else "closed."
-      "The Place is " + status
-    }
-    s"""
-       |*${res.name}* $rating and $reviews! $priceLevel
-       |The address is ${res.vicinity}
-       |$isOpened
-       |""".stripMargin
+    val rating = res.rating.getOrElse(without) + star
+    val review = res.userRatingsTotal.getOrElse(0) + reviews
+    val priceLevel = res.priceLevel.fold("")(value => money * value)
+    val isOpened = res.openingHours.fold("")(value => if (value.openNow) placeIsOpen else placeIsClosed)
+    s"""|*${res.name}* $rating($review)$priceLevel
+        |_${res.vicinity}${isOpened}_
+        |""".stripMargin
   }
 
   implicit val showSearchResponse: Show[SearchResponse] = Show.show { response =>
     "\n" +
-      response.results
-        .take(5)
-        .map(_.show)
-        .mkString("\uD83D\uDD3B" * 10 + "\n")
+      response
+        .results
+        .zipWithIndex
+        .map { case (entry, idx) => s"${idx + 1}. ${entry.show}\n" }
+        .mkString
+  }
+
+  object OptionDoubleOrdering extends Ordering[Option[Double]] {
+    def optionOrdering = Ordering.Double.reverse
+
+    def compare(x: Option[Double], y: Option[Double]) = (x, y) match {
+      case (None, None) => 0
+      case (None, _) => 1
+      case (_, None) => -1
+      case (Some(x), Some(y)) => optionOrdering.compare(x, y)
+    }
   }
 }

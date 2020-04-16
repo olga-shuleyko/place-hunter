@@ -1,6 +1,5 @@
-package service
+package model
 
-import model.Distance
 import cats.syntax.option._
 import org.scalatest.OptionValues
 import org.scalatest.flatspec.AnyFlatSpec

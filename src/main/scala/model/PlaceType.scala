@@ -17,7 +17,7 @@ object PlaceType {
   }
 
   final object Cafe extends PlaceType {
-    override val name: String = "Cafe\uD83C\uDF69\uD83C\uDF70☕️️"
+    override val name: String = "Cafe\uD83C\uDF70☕️️"
 
     override def category: String = "cafe"
   }

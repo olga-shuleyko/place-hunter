@@ -60,7 +60,9 @@ class PlaceHunterBot[F[_]: Async : ContextShift](token: BotToken,
             searchRequest <- placeHunterService.saveLocation(chatId, location)
             _ <- logger.info(s"ChatId=$chatId, Search request is $searchRequest").pure[F]
             response <- placeHunterService.searchForPlaces(chatId, searchRequest)
-            _ <- replyMd(response.show, replyMarkup = Keyboards.removeKeyBoard).void
+            messageToReply = if (response.results.isEmpty)
+              BotQuestions.nothingToRecommend else BotQuestions.recommends + response.show
+            _ <- replyMd(messageToReply, replyMarkup = Keyboards.removeKeyBoard).void
           } yield ()
         }
       case None => ().pure[F]
