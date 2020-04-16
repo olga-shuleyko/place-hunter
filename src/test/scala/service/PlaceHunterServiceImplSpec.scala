@@ -2,6 +2,7 @@ package service
 
 import cats.instances.try_._
 import cats.syntax.option._
+import model.ClientError.LocationIsMissing
 import model.RepositoryError.SearchRecordIsMissing
 import model.{PlaceType, SearchRequest}
 import org.scalamock.scalatest.MockFactory
@@ -96,5 +97,30 @@ class PlaceHunterServiceImplSpec
       .exception should have message s"Distance is incorrect for $chatId."
 
     (requestRepository.savePlace _).verify(*, *).never()
+  }
+
+  "Search for a place" should "find a correct place" in {
+    val chatId = Instances.genChatID()
+    Instances.googleResultObject should be('right)
+    val searchResponse = Success(Instances.googleResultObject.right.get)
+    val location = Instances.genLocation()
+    val searchRequest = SearchRequest(PlaceType.Restaurant, location.some)
+
+    (placesApi.explorePlaces _).when(chatId, searchRequest).returns(searchResponse)
+    (requestRepository.clearRequest _).when(chatId).returns(Success(()))
+
+    sut.searchForPlaces(chatId, searchRequest) shouldBe searchResponse
+  }
+
+  it should "not search without location in the request" in {
+    val chatId = Instances.genChatID()
+    Instances.googleResultObject should be('right)
+    val searchRequest = SearchRequest(PlaceType.Restaurant, None)
+    (placesApi.explorePlaces _).when(chatId, searchRequest).returns(Failure(LocationIsMissing(chatId)))
+
+    sut.searchForPlaces(chatId, searchRequest)
+      .failure
+      .exception should have message s"Location is missing in the search request for $chatId."
+    (requestRepository.clearRequest _).verify(*).never()
   }
 }
