@@ -2,6 +2,8 @@ package repositories
 
 import cats.MonadError
 import cats.effect.concurrent.Ref
+import cats.syntax.applicative._
+import cats.syntax.applicativeError._
 import cats.syntax.option._
 import cats.syntax.functor._
 import cats.syntax.flatMap._
@@ -18,33 +20,30 @@ class InMemorySearchRepository[F[_] : MonadError[*[_], Throwable]](val requests:
     requests.update(map => map + (chatId -> SearchRequest(placeType)))
 
   override def saveLocation(chatId: ChatId, location: Location): F[Unit] = {
-    val ME = MonadError[F, Throwable]
     for {
       requestsMap <- requests.get
       searchRequestOpt = requestsMap.get(chatId)
-      searchRequest <- searchRequestOpt.fold(raiseMissingRecord(chatId))(record => ME.pure(record.copy(location = location.some)))
+      searchRequest <- searchRequestOpt.fold(raiseMissingRecord(chatId))(_.copy(location = location.some).pure)
       _ <- requests.update(_ + (chatId -> searchRequest))
     } yield ()
   }
 
   override def loadRequest(chatId: ChatId): F[SearchRequest] = {
-    val ME = MonadError[F, Throwable]
     for {
       requestsMap <- requests.get
       searchRequestOpt = requestsMap.get(chatId)
-      searchRequest <- searchRequestOpt.fold(raiseMissingRecord(chatId))(ME.pure)
+      searchRequest <- searchRequestOpt.fold(raiseMissingRecord(chatId))(_.pure)
     } yield searchRequest
   }
 
-  private def raiseMissingRecord(chatId: ChatId)(implicit ME: MonadError[F, Throwable]): F[SearchRequest] =
-    ME.raiseError[SearchRequest](SearchRecordIsMissing(chatId))
+  private def raiseMissingRecord(chatId: ChatId): F[SearchRequest] =
+    SearchRecordIsMissing(chatId).raiseError[F, SearchRequest]
 
   override def saveDistance(chatId: ChatId, distance: Double): F[Unit] = {
-    val ME = MonadError[F, Throwable]
     for {
       requestsMap <- requests.get
       searchRequestOpt = requestsMap.get(chatId)
-      searchRequest <- searchRequestOpt.fold(raiseMissingRecord(chatId))(record => ME.pure(record.copy(radius = distance)))
+      searchRequest <- searchRequestOpt.fold(raiseMissingRecord(chatId))(_.copy(radius = distance).pure)
       _ <- requests.update(_ + (chatId -> searchRequest))
     } yield ()
   }

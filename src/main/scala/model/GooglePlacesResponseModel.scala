@@ -8,6 +8,8 @@ import cats.syntax.show._
 
 object GooglePlacesResponseModel {
 
+  implicit val config: Configuration = Configuration.default.withSnakeCaseMemberNames
+
   sealed trait Status
 
   object Status {
@@ -24,13 +26,31 @@ object GooglePlacesResponseModel {
 
     final case object UNKNOWN_ERROR extends Status
 
+    implicit val statusDecoder: Decoder[Status] = deriveEnumerationDecoder[Status]
+    implicit val statusEncoder: Encoder[Status] = deriveEnumerationEncoder[Status]
   }
 
   final case class ResultLocation(lat: Double, lng: Double)
 
+  object ResultLocation {
+    implicit val ResultLocationDecoder: Decoder[ResultLocation] = deriveDecoder[ResultLocation]
+    implicit val ResultLocationEncoder: Encoder[ResultLocation] = deriveEncoder[ResultLocation]
+  }
+
   final case class Geometry(location: ResultLocation)
 
+  object Geometry {
+    implicit val GeometryDecoder: Decoder[Geometry] = deriveDecoder[Geometry]
+    implicit val GeometryEncoder: Encoder[Geometry] = deriveEncoder[Geometry]
+  }
+
   final case class OpeningHours(openNow: Boolean)
+
+  object OpeningHours {
+    implicit val OpeningHoursDecoder: Decoder[OpeningHours] = deriveDecoder[OpeningHours]
+    implicit val OpeningHoursEncoder: Encoder[OpeningHours] = deriveEncoder[OpeningHours]
+
+  }
 
   final case class Result(geometry: Geometry,
                           id: String,
@@ -56,29 +76,19 @@ object GooglePlacesResponseModel {
       }
   }
 
+  object Result {
+    implicit val ResultDecoder: Decoder[Result] = deriveDecoder[Result]
+    implicit val ResultEncoder: Encoder[Result] = deriveEncoder[Result]
+  }
+
   final case class SearchResponse(status: Status, results: List[Result], nextPageToken: Option[String] = None) {
     def sortedByRating: SearchResponse = this.copy(results = this.results.sortBy(_.coefficient)(OptionDoubleOrdering))
   }
 
-  implicit val config: Configuration = Configuration.default.withSnakeCaseMemberNames
-
-  implicit val statusDecoder: Decoder[Status] = deriveEnumerationDecoder[Status]
-  implicit val statusEncoder: Encoder[Status] = deriveEnumerationEncoder[Status]
-
-  implicit val ResultLocationDecoder: Decoder[ResultLocation] = deriveDecoder[ResultLocation]
-  implicit val ResultLocationEncoder: Encoder[ResultLocation] = deriveEncoder[ResultLocation]
-
-  implicit val GeometryDecoder: Decoder[Geometry] = deriveDecoder[Geometry]
-  implicit val GeometryEncoder: Encoder[Geometry] = deriveEncoder[Geometry]
-
-  implicit val OpeningHoursDecoder: Decoder[OpeningHours] = deriveDecoder[OpeningHours]
-  implicit val OpeningHoursEncoder: Encoder[OpeningHours] = deriveEncoder[OpeningHours]
-
-  implicit val ResultDecoder: Decoder[Result] = deriveDecoder[Result]
-  implicit val ResultEncoder: Encoder[Result] = deriveEncoder[Result]
-
-  implicit val SearchResponseDecoder: Decoder[SearchResponse] = deriveDecoder[SearchResponse]
-  implicit val SearchResponseEncoder: Encoder[SearchResponse] = deriveEncoder[SearchResponse]
+  object SearchResponse {
+    implicit val SearchResponseDecoder: Decoder[SearchResponse] = deriveDecoder[SearchResponse]
+    implicit val SearchResponseEncoder: Encoder[SearchResponse] = deriveEncoder[SearchResponse]
+  }
 
   private val placeIsOpen = "\nOpen now"
   private val placeIsClosed = "\nClosed now"
@@ -116,4 +126,5 @@ object GooglePlacesResponseModel {
       case (Some(x), Some(y)) => optionOrdering.compare(x, y)
     }
   }
+
 }

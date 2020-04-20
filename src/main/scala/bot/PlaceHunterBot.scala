@@ -30,7 +30,7 @@ class PlaceHunterBot[F[_]: Async : ContextShift](token: BotToken,
   // Requests distance
   onRegex(Keyboards.placeRegex) { implicit msg: Message =>
     _ =>
-      adaptError {
+      onError {
         for {
           _ <- placeHunterService.savePlace(ChatId(msg.chat.id), msg.text)
           _ <- reply(BotQuestions.distance, replyMarkup = Keyboards.distance)
@@ -41,7 +41,7 @@ class PlaceHunterBot[F[_]: Async : ContextShift](token: BotToken,
   // Requests location
   onRegex(Keyboards.distancesRegex) { implicit msg: Message =>
     _ =>
-      adaptError {
+      onError {
         for {
           _ <- placeHunterService.saveDistance(ChatId(msg.chat.id), msg.text)
           _ <- reply(BotQuestions.location, replyMarkup = Keyboards.shareLocation)
@@ -51,31 +51,32 @@ class PlaceHunterBot[F[_]: Async : ContextShift](token: BotToken,
 
   // Process absolutely all messages and reply on received location
   onMessage { implicit msg: Message =>
-    logger.info(s"Received message: chatID=${msg.chat.id}, from=${msg.from}, text=${msg.text}, location=${msg.location}")
-    msg.location match {
-      case Some(location) =>
-        val chatId = ChatId(msg.chat.id)
-        adaptError {
-          for {
-            searchRequest <- placeHunterService.saveLocation(chatId, location)
-            _ <- logger.info(s"ChatId=$chatId, Search request is $searchRequest").pure[F]
-            response <- placeHunterService.searchForPlaces(chatId, searchRequest)
-            messageToReply = if (response.results.isEmpty)
-              BotQuestions.nothingToRecommend else BotQuestions.recommends + response.show
-            _ <- logger.info(s"ChatId=$chatId, Search result is $messageToReply").pure[F]
-            _ <- replyMd(messageToReply, replyMarkup = Keyboards.removeKeyBoard).void
-          } yield ()
-        }
-      case None => ().pure[F]
+    logger.info(s"Received message: chatID=${msg.chat.id}, from=${msg.from}, text=${msg.text}, location=${msg.location}"
+    ).pure >> {
+      msg.location match {
+        case Some(location) =>
+          val chatId = ChatId(msg.chat.id)
+          onError {
+            for {
+              searchRequest <- placeHunterService.saveLocation(chatId, location)
+              _ <- logger.info(s"ChatId=$chatId, Search request is $searchRequest").pure[F]
+              response <- placeHunterService.searchForPlaces(chatId, searchRequest)
+              messageToReply = if (response.results.isEmpty)
+                BotQuestions.nothingToRecommend else BotQuestions.recommends + response.show
+              _ <- logger.info(s"ChatId=$chatId, Search result is $messageToReply").pure[F]
+              _ <- replyMd(messageToReply, replyMarkup = Keyboards.removeKeyBoard).void
+            } yield ()
+          }
+        case None => ().pure[F]
+      }
     }
   }
 
   // Log the error and rethrow it back.
-  def adaptError[T](block: F[T]): F[T] = {
-    block adaptErr {
+  def onError[T](block: F[T]): F[T] = {
+    block onError {
       case error =>
-        logger.error(s"Error ${error.getClass}, the message is ${error.getMessage}.")
-        error
+        logger.error(s"Error ${error.getClass}, the message is ${error.getMessage}.").pure
     }
   }
 }

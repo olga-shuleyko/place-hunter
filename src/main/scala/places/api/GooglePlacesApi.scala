@@ -1,18 +1,19 @@
 package places.api
 
-import cats.MonadError
 import cats.effect.Sync
+import cats.syntax.applicativeError._
 import com.bot4s.telegram.models.Location
 import model.ClientError.LocationIsMissing
 import model.Credentials._
 import model.GooglePlacesResponseModel._
 import model.{ChatId, SearchRequest}
 import org.http4s.client.Client
-import org.http4s.{EntityDecoder, Uri}
+import org.http4s.Uri
+import org.http4s.circe.CirceEntityDecoder._
 
-class GooglePlacesApi[F[_]: Sync : EntityDecoder[*[_], SearchResponse]](httpClient: Client[F],
-                                                                        credentials: BotKeys)
- extends PlacesAPI[F] {
+class GooglePlacesApi[F[_]: Sync](httpClient: Client[F],
+                                  credentials: BotKeys)
+  extends PlacesAPI[F] {
 
   import util.GooglePlacesAPI._
 
@@ -34,5 +35,5 @@ class GooglePlacesApi[F[_]: Sync : EntityDecoder[*[_], SearchResponse]](httpClie
     )
 
   private def raiseLocationIsMissing(chatId: ChatId) =
-    MonadError[F, Throwable].raiseError[SearchResponse](LocationIsMissing(chatId))
+    LocationIsMissing(chatId).raiseError[F, SearchResponse]
 }
