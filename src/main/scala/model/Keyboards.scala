@@ -1,6 +1,6 @@
 package model
 
-import com.bot4s.telegram.models.{KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove}
+import com.bot4s.telegram.models.{InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove}
 import cats.syntax.option._
 import model.PlaceType._
 
@@ -22,6 +22,11 @@ object Keyboards {
   val distance = keyboard(
     distances.map(distance => List(KeyboardButton(distance)))
   )
+
+  def inlineKeyboardButtons(buttons: List[(Int, String)]) =
+    InlineKeyboardMarkup(
+      List(buttons.map { case (idx, link) => InlineKeyboardButton(text = idx.toString, url = link.some)}.toList)
+    ).some
 
   def keyboard(buttons: List[List[KeyboardButton]]): Option[ReplyKeyboardMarkup] =
     ReplyKeyboardMarkup(buttons).some

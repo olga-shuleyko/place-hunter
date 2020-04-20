@@ -90,6 +90,8 @@ object GooglePlacesResponseModel {
     implicit val SearchResponseEncoder: Encoder[SearchResponse] = deriveEncoder[SearchResponse]
   }
 
+  final case class Response(searchResponse: SearchResponse, buttons: List[(Int, String)])
+
   private val placeIsOpen = "\nOpen now"
   private val placeIsClosed = "\nClosed now"
   private val reviews = " reviews"

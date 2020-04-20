@@ -1,18 +1,19 @@
 package services
 
 import cats.MonadError
-import com.bot4s.telegram.models.Location
-import model.{ChatId, Distance, PlaceType, SearchRequest}
-import repositories.SearchRequestRepository
-import cats.syntax.flatMap._
-import cats.syntax.functor._
 import cats.syntax.applicative._
 import cats.syntax.applicativeError._
+import cats.syntax.flatMap._
+import cats.syntax.functor._
+import com.bot4s.telegram.models.Location
 import model.ClientError.{DistanceIsIncorrect, ParseError, PlaceTypeIsIncorrect}
-import model.GooglePlacesResponseModel.SearchResponse
+import model.GooglePlacesResponseModel.Response
 import model.PlacesRequestModel.SearchPlacesRequest
 import model.RepositoryError.SearchRecordIsMissing
+import model.{ChatId, Distance, PlaceType, SearchRequest}
 import places.api.PlacesAPI
+import repositories.SearchRequestRepository
+import util.GooglePlacesAPI
 
 class PlaceHunterServiceImpl[F[_]: MonadError[*[_], Throwable]](requestRepository: SearchRequestRepository[F],
                                                                 placesApi: PlacesAPI[F])
@@ -24,14 +25,21 @@ class PlaceHunterServiceImpl[F[_]: MonadError[*[_], Throwable]](requestRepositor
       .fold(PlaceTypeIsIncorrect(chatId).raiseError[F, Unit])(identity)
   }
 
-  override def searchForPlaces(chatId: ChatId, location: Location): F[SearchResponse] = {
+  override def searchForPlaces(chatId: ChatId, location: Location): F[Response] = {
     for {
       searchRequestOpt <- requestRepository.saveLocation(chatId, location)
       searchRequest <- searchRequestOpt.fold(raiseMissingRecord[SearchRequest](chatId))(_.pure)
       placesRequest <- SearchPlacesRequest.of(searchRequest).fold(raiseParseError, _.pure)
       response <- placesApi.explorePlaces(placesRequest)
       _ <- requestRepository.clearRequest(chatId)
-    } yield response.sortedByRating
+    } yield {
+      val result = response.sortedByRating
+      val buttons = result.results.zipWithIndex.map {
+        case (result, idx) =>
+          (idx + 1, GooglePlacesAPI.linkToRoute(searchRequest.location.get, result.geometry.location, result.placeId))
+      }
+      Response(result, buttons)
+    }
   }
 
   override def saveDistance(chatId: ChatId, msgText: Option[String]): F[Unit] = {
