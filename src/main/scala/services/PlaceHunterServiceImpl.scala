@@ -8,8 +8,9 @@ import cats.syntax.flatMap._
 import cats.syntax.functor._
 import cats.syntax.applicative._
 import cats.syntax.applicativeError._
-import model.ClientError.{DistanceIsIncorrect, PlaceTypeIsIncorrect}
+import model.ClientError.{DistanceIsIncorrect, ParseError, PlaceTypeIsIncorrect}
 import model.GooglePlacesResponseModel.SearchResponse
+import model.PlacesRequestModel.SearchPlacesRequest
 import model.RepositoryError.SearchRecordIsMissing
 import places.api.PlacesAPI
 
@@ -27,7 +28,8 @@ class PlaceHunterServiceImpl[F[_]: MonadError[*[_], Throwable]](requestRepositor
     for {
       searchRequestOpt <- requestRepository.saveLocation(chatId, location)
       searchRequest <- searchRequestOpt.fold(raiseMissingRecord[SearchRequest](chatId))(_.pure)
-      response <- placesApi.explorePlaces(chatId, searchRequest)
+      placesRequest <- SearchPlacesRequest.of(searchRequest).fold(raiseParseError, _.pure)
+      response <- placesApi.explorePlaces(placesRequest)
       _ <- requestRepository.clearRequest(chatId)
     } yield response.sortedByRating
   }
@@ -44,4 +46,7 @@ class PlaceHunterServiceImpl[F[_]: MonadError[*[_], Throwable]](requestRepositor
 
   private def raiseMissingRecord[T](chatId: ChatId): F[T] =
     SearchRecordIsMissing(chatId).raiseError[F, T]
+
+  private def raiseParseError(message: String): F[SearchPlacesRequest] =
+    ParseError(message).raiseError[F, SearchPlacesRequest]
 }

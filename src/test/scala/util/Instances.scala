@@ -20,7 +20,7 @@ object Instances {
   }
 
   def genLocation(): Location = {
-    Location(Math.abs(random.nextDouble()), Math.abs(random.nextDouble()))
+    Location(random.nextInt(180), random.nextInt(180))
   }
 
   val googleResult = """

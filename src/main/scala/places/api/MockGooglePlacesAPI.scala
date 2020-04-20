@@ -8,17 +8,17 @@ import cats.syntax.applicativeError._
 import cats.syntax.flatMap._
 import io.circe.parser.decode
 import model.ClientError.ParseError
-import model.{ChatId, SearchRequest}
 import model.GooglePlacesResponseModel.SearchResponse
+import model.PlacesRequestModel.SearchPlacesRequest
 
 import collection.JavaConverters._
 
 class MockGooglePlacesAPI[F[_]: Sync] extends PlacesAPI[F] {
 
-  override def explorePlaces(chatId: ChatId, searchRequest: SearchRequest): F[SearchResponse] = {
+  override def explorePlaces(searchRequest: SearchPlacesRequest): F[SearchResponse] = {
     readLinesFromFile(new File("google_output.json")).flatMap { lines =>
       decode[SearchResponse](lines.mkString).fold(
-        error => ParseError(chatId, error.getMessage).raiseError[F, SearchResponse],
+        error => ParseError(error.getMessage).raiseError[F, SearchResponse],
         _.pure
       )
     }

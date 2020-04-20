@@ -1,8 +1,8 @@
 package places.api
 
 import model.GooglePlacesResponseModel.SearchResponse
-import model.{ChatId, SearchRequest}
+import model.PlacesRequestModel.SearchPlacesRequest
 
 trait PlacesAPI[F[_]] {
-  def explorePlaces(chatId: ChatId, searchRequest: SearchRequest): F[SearchResponse]
+  def explorePlaces(searchRequest: SearchPlacesRequest): F[SearchResponse]
 }

@@ -2,7 +2,7 @@ package service
 
 import cats.instances.try_._
 import cats.syntax.option._
-import model.ClientError.LocationIsMissing
+import model.PlacesRequestModel.SearchPlacesRequest
 import model.{PlaceType, SearchRequest}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.TryValues
@@ -13,7 +13,7 @@ import repositories.SearchRequestRepository
 import services.PlaceHunterServiceImpl
 import util.Instances
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Success, Try}
 
 class PlaceHunterServiceImplSpec
   extends AnyFlatSpec
@@ -71,9 +71,10 @@ class PlaceHunterServiceImplSpec
     val searchResponse = Success(Instances.googleResultObject.right.get)
     val location = Instances.genLocation()
     val searchRequest = SearchRequest(PlaceType.Restaurant, location.some)
+    val searchPlacesRequest = SearchPlacesRequest.of(searchRequest).right.get
 
     (requestRepository.saveLocation _).when(chatId, location).returns(Success(searchRequest.some))
-    (placesApi.explorePlaces _).when(chatId, searchRequest).returns(searchResponse)
+    (placesApi.explorePlaces _).when(searchPlacesRequest).returns(searchResponse)
     (requestRepository.clearRequest _).when(chatId).returns(Success(()))
 
     sut.searchForPlaces(chatId, location) shouldBe searchResponse
@@ -90,7 +91,7 @@ class PlaceHunterServiceImplSpec
       .failure
       .exception should have message s"Search Record is missing for $chatId."
 
-    (placesApi.explorePlaces _).verify(*, *).never()
+    (placesApi.explorePlaces _).verify(*).never()
     (requestRepository.clearRequest _).verify(*).never()
   }
 
@@ -100,11 +101,12 @@ class PlaceHunterServiceImplSpec
     val location = Instances.genLocation()
     val searchRequest = SearchRequest(PlaceType.Restaurant, None)
     (requestRepository.saveLocation _).when(chatId, location).returns(Success(searchRequest.some))
-    (placesApi.explorePlaces _).when(chatId, searchRequest).returns(Failure(LocationIsMissing(chatId)))
 
     sut.searchForPlaces(chatId, location)
       .failure
-      .exception should have message s"Location is missing in the search request for $chatId."
+      .exception should have message s"Missing Location."
+
+    (placesApi.explorePlaces _).when(*).never()
     (requestRepository.clearRequest _).verify(*).never()
   }
 }
