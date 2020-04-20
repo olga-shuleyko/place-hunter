@@ -8,9 +8,9 @@ trait SearchRequestRepository[F[_]] {
 
   def savePlace(chatId: ChatId, placeType: PlaceType): F[Unit]
 
-  def saveDistance(chatId: ChatId, distance: Double): F[Unit]
+  def saveDistance(chatId: ChatId, distance: Double): F[Option[SearchRequest]]
 
-  def saveLocation(chatId: ChatId, location: Location): F[Unit]
+  def saveLocation(chatId: ChatId, location: Location): F[Option[SearchRequest]]
 
-  def loadRequest(chatId: ChatId): F[SearchRequest]
+  def loadRequest(chatId: ChatId): F[Option[SearchRequest]]
 }

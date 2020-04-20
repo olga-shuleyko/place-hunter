@@ -58,9 +58,7 @@ class PlaceHunterBot[F[_]: Async : ContextShift](token: BotToken,
           val chatId = ChatId(msg.chat.id)
           onError {
             for {
-              searchRequest <- placeHunterService.saveLocation(chatId, location)
-              _ <- logger.info(s"ChatId=$chatId, Search request is $searchRequest").pure[F]
-              response <- placeHunterService.searchForPlaces(chatId, searchRequest)
+              response <- placeHunterService.searchForPlaces(chatId, location)
               messageToReply = if (response.results.isEmpty)
                 BotQuestions.nothingToRecommend else BotQuestions.recommends + response.show
               _ <- logger.info(s"ChatId=$chatId, Search result is $messageToReply").pure[F]

@@ -6,11 +6,12 @@ import model.{ChatId, Distance, PlaceType, SearchRequest}
 import repositories.SearchRequestRepository
 import cats.syntax.flatMap._
 import cats.syntax.functor._
+import cats.syntax.applicative._
 import cats.syntax.applicativeError._
 import model.ClientError.{DistanceIsIncorrect, PlaceTypeIsIncorrect}
 import model.GooglePlacesResponseModel.SearchResponse
+import model.RepositoryError.SearchRecordIsMissing
 import places.api.PlacesAPI
-
 
 class PlaceHunterServiceImpl[F[_]: MonadError[*[_], Throwable]](requestRepository: SearchRequestRepository[F],
                                                                 placesApi: PlacesAPI[F])
@@ -22,22 +23,25 @@ class PlaceHunterServiceImpl[F[_]: MonadError[*[_], Throwable]](requestRepositor
       .fold(PlaceTypeIsIncorrect(chatId).raiseError[F, Unit])(identity)
   }
 
-  override def saveLocation(chatId: ChatId, location: Location): F[SearchRequest] =
+  override def searchForPlaces(chatId: ChatId, location: Location): F[SearchResponse] = {
     for {
-      _ <- requestRepository.saveLocation(chatId, location)
-      searchRequest <- requestRepository.loadRequest(chatId)
-    } yield searchRequest
-
-  override def searchForPlaces(chatId: ChatId, searchRequest: SearchRequest): F[SearchResponse] = {
-    for {
+      searchRequestOpt <- requestRepository.saveLocation(chatId, location)
+      searchRequest <- searchRequestOpt.fold(raiseMissingRecord[SearchRequest](chatId))(_.pure)
       response <- placesApi.explorePlaces(chatId, searchRequest)
       _ <- requestRepository.clearRequest(chatId)
     } yield response.sortedByRating
   }
 
   override def saveDistance(chatId: ChatId, msgText: Option[String]): F[Unit] = {
-    Distance.parse(msgText)
-      .map(radius => requestRepository.saveDistance(chatId, radius))
-      .fold(DistanceIsIncorrect(chatId).raiseError[F, Unit])(identity)
+    val distanceOpt = Distance.parse(msgText)
+    distanceOpt.map { radius =>
+      for {
+        searchReqOpt <- requestRepository.saveDistance(chatId, radius)
+        res <- searchReqOpt.fold(raiseMissingRecord[Unit](chatId))(_ => ().pure)
+      } yield res
+    }.fold(DistanceIsIncorrect(chatId).raiseError[F, Unit])(identity)
   }
+
+  private def raiseMissingRecord[T](chatId: ChatId): F[T] =
+    SearchRecordIsMissing(chatId).raiseError[F, T]
 }

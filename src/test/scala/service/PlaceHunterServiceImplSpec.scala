@@ -3,7 +3,6 @@ package service
 import cats.instances.try_._
 import cats.syntax.option._
 import model.ClientError.LocationIsMissing
-import model.RepositoryError.SearchRecordIsMissing
 import model.{PlaceType, SearchRequest}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.TryValues
@@ -47,46 +46,13 @@ class PlaceHunterServiceImplSpec
     (requestRepository.savePlace _).verify(*, *).never()
   }
 
-  "Save Location" should "save a location" in {
-    val chatId = Instances.genChatID()
-    val location = Instances.genLocation()
-    val searchRequest = SearchRequest(PlaceType.Restaurant, location.some)
-
-    (requestRepository.saveLocation _).when(chatId, location).returns(Success(()))
-    (requestRepository.loadRequest _).when(chatId).returns(Success(searchRequest))
-
-    sut.saveLocation(chatId, location).success.value shouldEqual searchRequest
-  }
-
-  it should "not return location if save of the location fails" in {
-    val chatId = Instances.genChatID()
-    val location = Instances.genLocation()
-    (requestRepository.saveLocation _).when(chatId, location).returns(Failure(SearchRecordIsMissing(chatId)))
-
-    sut.saveLocation(chatId, location)
-      .failure
-      .exception should have message s"Search Record is missing for $chatId."
-
-    (requestRepository.loadRequest _).when(*).never()
-  }
-
-  it should "not return location if load request fails" in {
-    val chatId = Instances.genChatID()
-    val location = Instances.genLocation()
-    (requestRepository.saveLocation _).when(chatId, location).returns(Success(()))
-    (requestRepository.loadRequest _).when(chatId).returns(Failure(SearchRecordIsMissing(chatId)))
-
-    sut.saveLocation(chatId, location)
-      .failure
-      .exception should have message s"Search Record is missing for $chatId."
-  }
-
   "Save Distance" should "save a correct distance" in {
     val chatId = Instances.genChatID()
+    val location = Instances.genLocation()
+    val searchRequest = SearchRequest(PlaceType.Restaurant, location.some).some
 
-    sut.saveDistance(chatId, "Up to 2km".some)
-
-    (requestRepository.saveDistance _).verify(chatId, 2000)
+    (requestRepository.saveDistance _).when(chatId, 2000).returns(Success(searchRequest))
+    sut.saveDistance(chatId, "Up to 2km".some).success.value shouldBe ()
   }
 
   it should "throw Distance Is Incorrect exception when save a wrong place" in {
@@ -106,19 +72,37 @@ class PlaceHunterServiceImplSpec
     val location = Instances.genLocation()
     val searchRequest = SearchRequest(PlaceType.Restaurant, location.some)
 
+    (requestRepository.saveLocation _).when(chatId, location).returns(Success(searchRequest.some))
     (placesApi.explorePlaces _).when(chatId, searchRequest).returns(searchResponse)
     (requestRepository.clearRequest _).when(chatId).returns(Success(()))
 
-    sut.searchForPlaces(chatId, searchRequest) shouldBe searchResponse
+    sut.searchForPlaces(chatId, location) shouldBe searchResponse
+  }
+
+  it should "not search if save of the location fails" in {
+    val chatId = Instances.genChatID()
+    Instances.googleResultObject should be('right)
+    val location = Instances.genLocation()
+
+    (requestRepository.saveLocation _).when(chatId, location).returns(Success(None))
+
+    sut.searchForPlaces(chatId, location)
+      .failure
+      .exception should have message s"Search Record is missing for $chatId."
+
+    (placesApi.explorePlaces _).verify(*, *).never()
+    (requestRepository.clearRequest _).verify(*).never()
   }
 
   it should "not search without location in the request" in {
     val chatId = Instances.genChatID()
     Instances.googleResultObject should be('right)
+    val location = Instances.genLocation()
     val searchRequest = SearchRequest(PlaceType.Restaurant, None)
+    (requestRepository.saveLocation _).when(chatId, location).returns(Success(searchRequest.some))
     (placesApi.explorePlaces _).when(chatId, searchRequest).returns(Failure(LocationIsMissing(chatId)))
 
-    sut.searchForPlaces(chatId, searchRequest)
+    sut.searchForPlaces(chatId, location)
       .failure
       .exception should have message s"Location is missing in the search request for $chatId."
     (requestRepository.clearRequest _).verify(*).never()
