@@ -63,7 +63,7 @@ object PlaceType {
   }
 
   final object Museum extends PlaceType {
-    override val name: String = "Museum\uD83D\uDDBC "
+    override val name: String = "Museum"
 
     override def category: String = "museum"
   }

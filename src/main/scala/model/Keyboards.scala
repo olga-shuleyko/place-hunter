@@ -7,7 +7,7 @@ import model.PlaceType._
 import scala.util.matching.Regex
 
 object Keyboards {
-  val placeRegex: Regex = places.mkString("|").r
+  val placeRegex: Regex = places.map(_.name).mkString("|").r
   val placeTypes = keyboard(
     places
       .map(place => KeyboardButton(place.name))

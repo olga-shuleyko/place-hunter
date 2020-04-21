@@ -5,7 +5,7 @@ object BotQuestions {
   val place = "What are you looking for?"
 
   val distance =
-    """How far are you ready to walk? "
+    """How far are you ready to walk?
       |The input format is "up to *.*km" or "up to *.*m".
       |Search radius limit is 50km.""".stripMargin
 
