@@ -11,14 +11,14 @@ object Keyboards {
   val placeTypes = keyboard(
     places
       .map(place => KeyboardButton(place.name))
-      .grouped(3)
+      .grouped(4)
       .toList
   )
   val shareLocation = keyboard(List(List(KeyboardButton("Send my current location", requestLocation = true.some))))
   val removeKeyBoard = ReplyKeyboardRemove().some
 
   val distances = List("Up to 0.5km", "Up to 1km", "Up to 2km")
-  val distancesRegex: Regex = "Up to ([0-9.]+)k?+m".r
+  val distancesRegex: Regex = "[U|u]p to ([0-9.]+)k?+m".r
   val distance = keyboard(
     distances.map(distance => List(KeyboardButton(distance)))
   )
@@ -26,7 +26,7 @@ object Keyboards {
   val likesRegex: Regex = "👍 \\d+".r
   val dislike = "👎"
   val dislikeRegex: Regex = dislike.r
-  val nextResultsRegex: Regex = "Next results \\d+-?+\\d+".r
+  val nextResultsRegex: Regex = "[N|n]ext results \\d+-?+\\d+".r
 
   def inlineKeyboardButtons(buttons: List[(Int, String)]) =
     InlineKeyboardMarkup(

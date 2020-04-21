@@ -1,6 +1,7 @@
 package model
 
 import cats.Show
+import util.GooglePlacesAPI._
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.extras._
 import io.circe.generic.extras.semiauto._
@@ -104,7 +105,8 @@ object GooglePlacesResponseModel {
     val review = res.userRatingsTotal.getOrElse(0) + reviews
     val priceLevel = res.priceLevel.fold("")(value => money * value)
     val isOpened = res.openingHours.fold("")(value => if (value.openNow) placeIsOpen else placeIsClosed)
-    s"""|*${res.name}* $rating($review)$priceLevel
+    val link = linkToPlace(res.placeId, res.name)
+    s"""|[${res.name}]($link) $rating($review) $priceLevel
         |_${res.vicinity}${isOpened}_
         |""".stripMargin
   }

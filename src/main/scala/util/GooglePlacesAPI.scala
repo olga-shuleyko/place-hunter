@@ -32,4 +32,7 @@ object GooglePlacesAPI {
     val destinationLocation = destination.lat + "," + destination.lng
     s"$destinationApi&origin=$originLoc&destination=$destinationLocation&destination_place_id=$placeID"
   }
+
+  def linkToPlace(placeId: String, placeName: String) =
+    s"https://www.google.com/maps/search/?api=1&query_place_id=$placeId&query=$placeName"
 }

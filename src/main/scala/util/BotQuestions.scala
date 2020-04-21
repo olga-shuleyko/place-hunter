@@ -13,7 +13,9 @@ object BotQuestions {
 
   val recommends = "Best places go first:"
 
-  val nothingToRecommend = "Bot can't find anything at this location and distance."
+  val nothingToRecommend =
+    """Bot can't find anything at this location and distance.
+      |Please start a new search with /search.""".stripMargin
 
   val selectResult = "Which result do you like?"
 
