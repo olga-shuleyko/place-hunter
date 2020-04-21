@@ -9,7 +9,7 @@ import org.scalatest.TryValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import places.api.PlacesAPI
-import repositories.SearchRequestRepository
+import repositories.{SearchRequestRepository, SearchResponseRepository}
 import services.PlaceHunterServiceImpl
 import util.Instances
 
@@ -22,8 +22,9 @@ class PlaceHunterServiceImplSpec
     with TryValues {
 
   val requestRepository: SearchRequestRepository[Try] = stub[SearchRequestRepository[Try]]
+  val responseRepository: SearchResponseRepository[Try] = stub[SearchResponseRepository[Try]]
   val placesApi: PlacesAPI[Try] = stub[PlacesAPI[Try]]
-  val sut = new PlaceHunterServiceImpl[Try](requestRepository, placesApi)
+  val sut = new PlaceHunterServiceImpl[Try](requestRepository, responseRepository, placesApi)
 
   behavior of "Place Hunter Service Implementation"
 

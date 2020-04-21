@@ -23,10 +23,32 @@ object Keyboards {
     distances.map(distance => List(KeyboardButton(distance)))
   )
 
+  val likesRegex: Regex = "👍 \\d+".r
+  val dislike = "👎"
+  val dislikeRegex: Regex = dislike.r
+  val nextResultsRegex: Regex = "Next results \\d+-?+\\d+".r
+
   def inlineKeyboardButtons(buttons: List[(Int, String)]) =
     InlineKeyboardMarkup(
-      List(buttons.map { case (idx, link) => InlineKeyboardButton(text = idx.toString, url = link.some)}.toList)
+      List(buttons.map { case (idx, link) => InlineKeyboardButton(text = idx.toString, url = link.some) })
     ).some
+
+  def likesKeyboard(buttons: List[Int], next: Option[(Int, Int)]) = {
+    val likeButtons = buttons
+      .map { idx => KeyboardButton(s"👍 ${idx.toString}")}
+      .grouped(5)
+      .toList
+    val nextResultButton = next.map { case (from, to) =>
+      val start = from + 1
+      val resultRange = if (start == to) start else s"$start-$to"
+      List(KeyboardButton(s"Next results $resultRange"))
+    }
+    keyboard(
+      likeButtons ++
+        nextResultButton ++
+        List(List(KeyboardButton(dislike)))
+    )
+  }
 
   def keyboard(buttons: List[List[KeyboardButton]]): Option[ReplyKeyboardMarkup] =
     ReplyKeyboardMarkup(buttons).some

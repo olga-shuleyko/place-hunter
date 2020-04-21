@@ -35,7 +35,7 @@ object PlaceType {
   }
 
   final object Atm extends PlaceType {
-    override val name: String = "Atm\uD83C\uDFE2"
+    override val name: String = "ATM\uD83C\uDFE2"
 
     override def category: String = "atm"
   }

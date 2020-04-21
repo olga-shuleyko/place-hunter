@@ -12,6 +12,10 @@ object ClientError {
     override def getMessage: String = s"Distance is incorrect for $chatId."
   }
 
+  final case class LikeNumberIsIncorrect(chatId: ChatId) extends ClientError {
+    override def getMessage: String = s"Like number is incorrect for $chatId."
+  }
+
   final case class ParseError(message: String) extends ClientError {
     override def getMessage: String = message
   }

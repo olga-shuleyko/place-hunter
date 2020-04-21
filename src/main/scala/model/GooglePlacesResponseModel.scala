@@ -90,7 +90,7 @@ object GooglePlacesResponseModel {
     implicit val SearchResponseEncoder: Encoder[SearchResponse] = deriveEncoder[SearchResponse]
   }
 
-  final case class Response(searchResponse: SearchResponse, buttons: List[(Int, String)])
+  final case class Response(searchResponse: SearchResponse, buttons: List[(Int, String)], size: Int)
 
   private val placeIsOpen = "\nOpen now"
   private val placeIsClosed = "\nClosed now"
@@ -109,12 +109,13 @@ object GooglePlacesResponseModel {
         |""".stripMargin
   }
 
-  implicit val showSearchResponse: Show[SearchResponse] = Show.show { response =>
+  final case class FromIndex(value: Int) extends AnyVal
+  implicit def showSearchResponse(implicit from: FromIndex): Show[SearchResponse] = Show.show { response =>
     "\n" +
       response
         .results
         .zipWithIndex
-        .map { case (entry, idx) => s"${idx + 1}. ${entry.show}\n" }
+        .map { case (entry, idx) => s"${idx + 1 + from.value}. ${entry.show}\n" }
         .mkString
   }
 

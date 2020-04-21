@@ -5,6 +5,7 @@ import cats.syntax.flatMap._
 import cats.syntax.functor._
 import cats.syntax.applicative._
 import model.Credentials._
+import model.GooglePlacesResponseModel.SearchResponse
 import model.{ChatId, SearchRequest}
 import org.http4s.client.Client
 import org.http4s.client.blaze.BlazeClientBuilder
@@ -30,6 +31,7 @@ object Launcher extends IOApp {
       apiKey <- System.getenv("GOOGLE_API_KEY").pure[F]
       credentials = BotKeys(BotToken(token), PlacesAPIKey(apiKey))
       requests <- Ref.of[F, Map[ChatId, SearchRequest]](Map.empty[ChatId, SearchRequest])
-      mod <- new BotModule[F](BotToken(token), requests, client, credentials).pure[F]
+      responses <- Ref.of[F, Map[ChatId, SearchResponse]](Map.empty[ChatId, SearchResponse])
+      mod <- new BotModule[F](BotToken(token), requests, responses, client, credentials).pure[F]
     } yield mod.bot
 }
