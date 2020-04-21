@@ -23,8 +23,8 @@ class PlaceHunterBot[F[_]: Async : ContextShift](token: BotToken,
 
   // Provide a keyboard on search
   onCommand("search") { implicit msg: Message =>
-    logger.debug(s"Search command: chatID=${msg.chat.id}")
-    reply(BotQuestions.place, replyMarkup = Keyboards.placeTypes).void
+    logger.debug(s"Search command: chatID=${msg.chat.id}").pure >>
+      reply(BotQuestions.place, replyMarkup = Keyboards.placeTypes).void
   }
 
   // Requests distance
