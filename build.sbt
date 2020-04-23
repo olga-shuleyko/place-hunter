@@ -38,4 +38,6 @@ libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "3.1.1" % Test,
   "org.scalamock" %% "scalamock" % "4.4.0" % Test,
   "com.propensive" %% "kaleidoscope" % "0.1.0",
+  "io.chrisdavenport" %% "log4cats-core" % "1.0.1",
+  "io.chrisdavenport" %% "log4cats-slf4j" % "1.0.1",
 )

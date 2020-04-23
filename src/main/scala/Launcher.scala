@@ -1,9 +1,9 @@
 import bot.PlaceHunterBot
 import cats.effect.concurrent.Ref
-import cats.effect.{ConcurrentEffect, ContextShift, ExitCode, IO, IOApp, Resource}
+import cats.effect.{ConcurrentEffect, ContextShift, ExitCode, IO, IOApp, Resource, Sync}
 import cats.syntax.flatMap._
 import cats.syntax.functor._
-import cats.syntax.applicative._
+import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import model.Credentials._
 import model.{ChatId, SearchRequest}
 import org.http4s.client.Client
@@ -25,11 +25,15 @@ object Launcher extends IOApp {
     BlazeClientBuilder[F](global).resource
 
   private def bot[F[_] : ConcurrentEffect : ContextShift](client: Client[F]): F[PlaceHunterBot[F]] =
-    for {
-      token <- System.getenv("PLACE_HUNTER_BOT_TOKEN").pure[F]
-      apiKey <- System.getenv("GOOGLE_API_KEY").pure[F]
-      credentials = BotKeys(BotToken(token), PlacesAPIKey(apiKey))
-      requests <- Ref.of[F, Map[ChatId, SearchRequest]](Map.empty[ChatId, SearchRequest])
-      mod <- new BotModule[F](BotToken(token), requests, client, credentials).pure[F]
-    } yield mod.bot
+    {
+      for {
+        logger <- Slf4jLogger.create[F]
+        token <- Sync[F].delay(System.getenv("PLACE_HUNTER_BOT_TOKEN"))
+        apiKey <- Sync[F].delay(System.getenv("GOOGLE_API_KEY"))
+        credentials = BotKeys(BotToken(token), PlacesAPIKey(apiKey))
+        requests <- Ref.of[F, Map[ChatId, SearchRequest]](Map.empty[ChatId, SearchRequest])
+        mod <- Sync[F].delay(new BotModule[F](BotToken(token), requests, client, credentials, logger))
+      } yield mod.bot
+    }
+
 }

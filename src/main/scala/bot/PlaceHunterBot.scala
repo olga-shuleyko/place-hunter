@@ -9,12 +9,13 @@ import cats.syntax.show._
 import com.bot4s.telegram.api.declarative.{Commands, RegexCommands}
 import com.bot4s.telegram.cats.Polling
 import com.bot4s.telegram.models.Message
+import io.chrisdavenport.log4cats.Logger
 import model.Credentials.BotToken
 import model.{ChatId, Keyboards}
 import services.PlaceHunterService
 import util.BotQuestions
 
-class PlaceHunterBot[F[_]: Async : ContextShift](token: BotToken,
+class PlaceHunterBot[F[_]: Async : ContextShift: Logger](token: BotToken,
                                                  placeHunterService: PlaceHunterService[F])
   extends AbstractBot[F](token)
     with Polling[F]
@@ -23,7 +24,7 @@ class PlaceHunterBot[F[_]: Async : ContextShift](token: BotToken,
 
   // Provide a keyboard on search
   onCommand("search") { implicit msg: Message =>
-    logger.debug(s"Search command: chatID=${msg.chat.id}").pure >>
+    Logger[F].debug(s"Search command: chatID=${msg.chat.id}") >>
       reply(BotQuestions.place, replyMarkup = Keyboards.placeTypes).void
   }
 
@@ -51,8 +52,8 @@ class PlaceHunterBot[F[_]: Async : ContextShift](token: BotToken,
 
   // Process absolutely all messages and reply on received location
   onMessage { implicit msg: Message =>
-    logger.info(s"Received message: chatID=${msg.chat.id}, from=${msg.from}, text=${msg.text}, location=${msg.location}"
-    ).pure >> {
+    Logger[F].info(s"Received message: chatID=${msg.chat.id}, from=${msg.from}, text=${msg.text}, location=${msg.location}"
+    ) >> {
       msg.location match {
         case Some(location) =>
           val chatId = ChatId(msg.chat.id)
@@ -61,7 +62,7 @@ class PlaceHunterBot[F[_]: Async : ContextShift](token: BotToken,
               response <- placeHunterService.searchForPlaces(chatId, location)
               messageToReply = if (response.results.isEmpty)
                 BotQuestions.nothingToRecommend else BotQuestions.recommends + response.show
-              _ <- logger.info(s"ChatId=$chatId, Search result is $messageToReply").pure[F]
+              _ <- Logger[F].info(s"ChatId=$chatId, Search result is $messageToReply")
               _ <- replyMd(messageToReply, replyMarkup = Keyboards.removeKeyBoard).void
             } yield ()
           }
@@ -74,7 +75,7 @@ class PlaceHunterBot[F[_]: Async : ContextShift](token: BotToken,
   def onError[T](block: F[T]): F[T] = {
     block onError {
       case error =>
-        logger.error(s"Error ${error.getClass}, the message is ${error.getMessage}.").pure
+        Logger[F].error(s"Error ${error.getClass}, the message is ${error.getMessage}.")
     }
   }
 }

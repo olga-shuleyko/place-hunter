@@ -31,5 +31,5 @@ class MockGooglePlacesAPI[F[_]: Sync] extends PlacesAPI[F] {
     Sync[F].delay(bufferedReader.lines().iterator().asScala.toList)
 
   private def reader(file: File): Resource[F, BufferedReader] =
-    Resource.fromAutoCloseable(new BufferedReader(new FileReader(file)).pure[F])
+    Resource.fromAutoCloseable(Sync[F].delay(new BufferedReader(new FileReader(file))))
 }

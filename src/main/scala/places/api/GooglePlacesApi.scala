@@ -2,7 +2,7 @@ package places.api
 
 import cats.effect.Sync
 import model.Credentials._
-import model.GooglePlacesResponseModel._
+import model.GooglePlacesResponseModel.SearchResponse
 import model.PlacesRequestModel._
 import org.http4s.client.Client
 import org.http4s.Uri
