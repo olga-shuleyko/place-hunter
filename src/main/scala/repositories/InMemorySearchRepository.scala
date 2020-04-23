@@ -16,18 +16,21 @@ class InMemorySearchRepository[F[_] : MonadError[*[_], Throwable]](val requests:
     requests.update(map => map + (chatId -> SearchRequest(placeType)))
 
   override def saveLocation(chatId: ChatId, location: Location): F[Option[SearchRequest]] =
-    requests.modify { allRequests: Map[ChatId, SearchRequest] =>
-      val updatedRequestOpt = allRequests.get(chatId).map(_.copy(location = location.some))
-      val newRequests = allRequests ++ updatedRequestOpt.map(chatId -> _)
-      (newRequests, updatedRequestOpt)
+    updateSearchRequest(chatId) { searchRequest: SearchRequest =>
+      searchRequest.copy(location = location.some)
     }
 
   override def loadRequest(chatId: ChatId): F[Option[SearchRequest]] =
     requests.get.map(_.get(chatId))
 
   override def saveDistance(chatId: ChatId, distance: Double): F[Option[SearchRequest]] =
+    updateSearchRequest(chatId) { searchRequest: SearchRequest =>
+      searchRequest.copy(radius = distance)
+    }
+
+  def updateSearchRequest(chatId: ChatId)(transform: SearchRequest => SearchRequest): F[Option[SearchRequest]] =
     requests.modify { allRequests: Map[ChatId, SearchRequest] =>
-      val updatedRequestOpt = allRequests.get(chatId).map(_.copy(radius = distance))
+      val updatedRequestOpt = allRequests.get(chatId).map(transform)
       val newRequests = allRequests ++ updatedRequestOpt.map(chatId -> _)
       (newRequests, updatedRequestOpt)
     }

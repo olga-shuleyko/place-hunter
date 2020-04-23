@@ -35,5 +35,4 @@ object Launcher extends IOApp {
         mod <- Sync[F].delay(new BotModule[F](BotToken(token), requests, client, credentials, logger))
       } yield mod.bot
     }
-
 }
