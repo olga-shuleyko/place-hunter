@@ -1,11 +1,14 @@
 package services
 
 import com.bot4s.telegram.models.Location
-import model.{ChatId, SearchRequest}
+import model.GooglePlacesResponseModel.SearchResponse
+import model.ChatId
 
 trait PlaceHunterService[F[_]] {
 
   def savePlace(chatId: ChatId, msgText: Option[String]): F[Unit]
 
-  def saveLocation(chatId: ChatId, location: Location): F[SearchRequest]
+  def saveDistance(chatId: ChatId, msgText: Option[String]): F[Unit]
+
+  def searchForPlaces(chatId: ChatId, location: Location): F[SearchResponse]
 }
