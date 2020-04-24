@@ -1,19 +1,17 @@
 package services
 
-import cats.MonadError
-import cats.Traverse
-import cats.syntax.applicativeError._
+import cats.{MonadError, Traverse}
+import cats.syntax.apply._
 import cats.syntax.either._
 import cats.syntax.flatMap._
 import cats.syntax.functor._
 import cats.syntax.option._
-import cats.syntax.apply._
 import com.bot4s.telegram.models.Location
-import model.ClientError.{DistanceIsIncorrect, ParseError, PlaceTypeIsIncorrect}
+import model.ClientError.ParseError
 import model.GooglePlacesResponseModel.{Response, Result}
 import model.PlacesRequestModel.SearchPlacesRequest
 import model.RepositoryError.SearchRecordIsMissing
-import model.{ChatId, Distance, PlaceType}
+import model.{ChatId, PlaceType}
 import places.api.PlacesAPI
 import repositories.{SearchRequestRepository, SearchResponseRepository}
 import util.GooglePlacesAPI
@@ -23,10 +21,8 @@ class PlaceHunterServiceImpl[F[_]: MonadError[*[_], Throwable]](requestRepositor
                                                                 placesApi: PlacesAPI[F])
   extends PlaceHunterService[F] {
 
-  override def savePlace(chatId: ChatId, msgText: Option[String]): F[Unit] = {
-    PlaceType.parse(msgText)
-      .map(placeType => requestRepository.savePlace(chatId, placeType))
-      .getOrElse(PlaceTypeIsIncorrect(chatId).raiseError[F, Unit])
+  override def savePlace(chatId: ChatId, placeType: PlaceType): F[Unit] = {
+    requestRepository.savePlace(chatId, placeType)
   }
 
   override def searchForPlaces(chatId: ChatId, location: Location): F[Response] = {
@@ -46,25 +42,23 @@ class PlaceHunterServiceImpl[F[_]: MonadError[*[_], Throwable]](requestRepositor
     }
   }
 
-  override def saveDistance(chatId: ChatId, msgText: Option[String]): F[Unit] = {
-    Distance.parse(msgText).map { radius =>
-      for {
-        searchReqOpt <- requestRepository.saveDistance(chatId, radius)
-        _ <- searchReqOpt.liftTo[F](SearchRecordIsMissing(chatId))
-      } yield ()
-    }.getOrElse(DistanceIsIncorrect(chatId).raiseError[F, Unit])
+  override def saveDistance(chatId: ChatId, radius: Double): F[Unit] = {
+    for {
+      searchReqOpt <- requestRepository.saveDistance(chatId, radius)
+      _ <- searchReqOpt.liftTo[F](SearchRecordIsMissing(chatId))
+    } yield ()
   }
 
   override def stopSearch(chatId: ChatId, likes: Option[Int]): F[Option[Result]] = {
     import cats.instances.option._
     for {
       result <- Traverse[Option].flatTraverse(likes)(idx => responseRepository.loadResponse(chatId, idx))
-      _ <- responseRepository.clearResponse(chatId)
+      _ <- clearStorage(chatId)
     } yield result.flatMap(_.results.headOption)
   }
 
   override def clearStorage(chatId: ChatId): F[Unit] =
-    responseRepository.clearResponse(chatId) >> requestRepository.clearRequest(chatId)
+    (responseRepository.clearResponse(chatId), requestRepository.clearRequest(chatId)).mapN((_, _) => ())
 
   override def searchForPlaces(chatId: ChatId, from: Int, until: Int): F[Option[Response]] =
     for {

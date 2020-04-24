@@ -1,6 +1,7 @@
 package bot
 
 import cats.Traverse
+import cats.data.OptionT
 import cats.effect.{Async, ContextShift}
 import cats.syntax.flatMap._
 import cats.syntax.functor._
@@ -8,20 +9,21 @@ import cats.syntax.applicativeError._
 import cats.syntax.applicative._
 import cats.syntax.show._
 import cats.syntax.option._
+import com.bot4s.telegram.models.ReplyMarkup
 import com.bot4s.telegram.api.declarative.{Commands, RegexCommands}
 import com.bot4s.telegram.cats.Polling
 import com.bot4s.telegram.methods.SendLocation
 import com.bot4s.telegram.models.Message
 import io.chrisdavenport.log4cats.Logger
-import model.ClientError.LikeNumberIsIncorrect
+import model.ClientError.{DistanceIsIncorrect, PlaceTypeIsIncorrect}
 import model.Credentials.BotToken
-import model.GooglePlacesResponseModel.{FromIndex, Response}
-import model.{ChatId, Keyboards, Likes, NextResults}
+import model.GooglePlacesResponseModel.{FromIndex, Response, Result}
+import model.{ChatId, Distance, Keyboards, Likes, NextResults, PlaceType}
 import services.PlaceHunterService
 import util.BotQuestions
 
 class PlaceHunterBot[F[_]: Async : ContextShift: Logger](token: BotToken,
-                                                 placeHunterService: PlaceHunterService[F])
+                                                         placeHunterService: PlaceHunterService[F])
   extends AbstractBot[F](token)
     with Polling[F]
     with Commands[F]
@@ -29,17 +31,20 @@ class PlaceHunterBot[F[_]: Async : ContextShift: Logger](token: BotToken,
 
   // Provide a keyboard on search
   onCommand("search") { implicit msg: Message =>
-    Logger[F].debug(s"Search command: chatID=${msg.chat.id}") >>
-      placeHunterService.clearStorage(ChatId(msg.chat.id)) >>
-      reply(BotQuestions.place, replyMarkup = Keyboards.placeTypes).void
+    onError {
+      Logger[F].info(s"Search command: chatID=${msg.chat.id}") >>
+        placeHunterService.clearStorage(ChatId(msg.chat.id)) >> requestPlaceType
+    }
   }
 
   // Requests distance
   onRegex(Keyboards.placeRegex) { implicit msg: Message =>
     _ =>
       onError {
-        placeHunterService.savePlace(ChatId(msg.chat.id), msg.text) >>
-          reply(BotQuestions.distance, replyMarkup = Keyboards.distance).void
+        val chatId = ChatId(msg.chat.id)
+        PlaceType.parse(msg.text).map { placeType =>
+          placeHunterService.savePlace(chatId, placeType) >> requestDistance
+        }.getOrElse(PlaceTypeIsIncorrect(chatId).raiseError)
       }
   }
 
@@ -47,94 +52,102 @@ class PlaceHunterBot[F[_]: Async : ContextShift: Logger](token: BotToken,
   onRegex(Keyboards.distancesRegex) { implicit msg: Message =>
     _ =>
       onError {
-        placeHunterService.saveDistance(ChatId(msg.chat.id), msg.text) >>
-          reply(BotQuestions.location, replyMarkup = Keyboards.shareLocation).void
+        val chatId = ChatId(msg.chat.id)
+        Distance.parse(msg.text).map { distance =>
+          placeHunterService.saveDistance(chatId, distance) >> requestLocation
+        }.getOrElse(DistanceIsIncorrect(chatId).raiseError)
       }
   }
 
   // Process absolutely all messages and reply on received location
   onMessage { implicit msg: Message =>
-    Logger[F].info(s"Received message: chatID=${msg.chat.id}, from=${msg.from}, text=${msg.text}, location=${msg.location}"
-    ) >> {
-      msg.location match {
-        case Some(location) =>
-          onError {
-            for {
-              response <- placeHunterService.searchForPlaces(ChatId(msg.chat.id), location)
-              _ <- replySearchResults(response)
-            } yield ()
-          }
-        case None => ().pure[F]
-      }
+    onError {
+      import cats.instances.option._
+      Logger[F].info(s"Received message:chatID=${msg.chat.id},from=${msg.from},text=${msg.text},location=${msg.location}") >>
+        Traverse[Option].traverse(msg.location) { location =>
+          for {
+            result <- placeHunterService.searchForPlaces(ChatId(msg.chat.id), location)
+            _ <- replyWithSearchResults(result)
+          } yield ()
+        }
     }
   }
 
   onRegex(Keyboards.likesRegex) { implicit msg: Message =>
     _ =>
-      val chatId = ChatId(msg.chat.id)
       onError {
-        Likes.parse(msg.text).map { like =>
-          import cats.instances.option._
-          for {
-            response <- placeHunterService.stopSearch(chatId, like.some)
-            _ <- Traverse[Option].traverse(response) { result =>
-              replyMd(BotQuestions.finishSearch + result.show + BotQuestions.newSearch, replyMarkup = Keyboards.removeKeyBoard) >>
-                request(SendLocation(msg.chat.id, result.geometry.location.lat, result.geometry.location.lng))
-            }
-          } yield ()
-        }.fold(LikeNumberIsIncorrect(chatId).raiseError[F, Unit])(identity)
+        for {
+          likeNumber <- OptionT.fromOption(Likes.parse(msg.text))
+          result <- OptionT(placeHunterService.stopSearch(ChatId(msg.chat.id), likeNumber.some))
+          _ <- OptionT.liftF(replyOnStop(result))
+        } yield ()
       }
   }
 
   onRegex(Keyboards.dislikeRegex) { implicit msg: Message =>
     _ =>
-      val chatId = ChatId(msg.chat.id)
       onError {
-        placeHunterService.stopSearch(chatId, none) >>
-          reply(BotQuestions.dislikeSearch, replyMarkup = Keyboards.removeKeyBoard).void
+        placeHunterService.stopSearch(ChatId(msg.chat.id), none) >> replyOnDislike
       }
   }
 
   onRegex(Keyboards.nextResultsRegex) { implicit msg: Message =>
     _ =>
-      val chatId = ChatId(msg.chat.id)
       onError {
-        NextResults.parse(msg.text).map { case (from, until) =>
-          import cats.instances.option._
-          val start = from - 1
-          for {
-            response <- placeHunterService.searchForPlaces(ChatId(msg.chat.id), start, until)
-            _ <- Traverse[Option].traverse(response)(replySearchResults(_, start, until))
-          } yield ()
-
-        }.fold(LikeNumberIsIncorrect(chatId).raiseError[F, Unit])(identity)
+        for {
+          (from, until) <- OptionT(NextResults.parse(msg.text).pure[F])
+          start = from - 1
+          result <- OptionT(placeHunterService.searchForPlaces(ChatId(msg.chat.id), start, until))
+          _ <- OptionT.liftF(replyWithSearchResults(result, start, until))
+        } yield ()
       }
   }
 
-  private def replySearchResults(response: Response, from: Int = 0, until: Int = 5)(implicit message: Message): F[Unit] = {
+  private def replyWithSearchResults(response: Response, from: Int = 0, until: Int = 5)(implicit message: Message) = {
+    val responseSize = response.size
+    val nextTo = if (responseSize > until) (until, Math.min(until + 5, responseSize)).some else none
+    val remainingAmount = Math.min(until, responseSize)
+
+    val replyResults = replySearchResults(response, from)
+    if (remainingAmount > 0)
+      replyResults >>
+        reply(BotQuestions.selectResult, replyMarkup = Keyboards.likesKeyboard((1 to remainingAmount).toList, nextTo))
+    else replyResults
+  }
+
+  private def replySearchResults(response: Response, from: Int)(implicit message: Message) = {
     implicit val fromIndex: FromIndex = FromIndex(from)
-    val (messageToReply, buttonsToReply) =
+    val (messageToReply, buttonsToReply: Option[ReplyMarkup]) =
       if (response.searchResponse.results.isEmpty)
         (BotQuestions.nothingToRecommend, Keyboards.removeKeyBoard)
       else
         (BotQuestions.recommends + response.searchResponse.show, Keyboards.inlineKeyboardButtons(response.buttons))
-    val responseSize = response.size
-    val nextTo = if (responseSize > until) (until, Math.min(until + 5, responseSize)).some else none
-    val likeNum = Math.min(until, responseSize)
-
-    val result = Logger[F].info(s"ChatId=${message.chat.id}, Search result is $messageToReply").pure[F] >>
+    Logger[F].info(s"ChatId=${message.chat.id}, SearchResult is $messageToReply").pure[F] >>
       replyMd(messageToReply, replyMarkup = buttonsToReply)
-    if (likeNum > 0)
-      result >>
-        reply(BotQuestions.selectResult, replyMarkup = Keyboards.likesKeyboard((1 to likeNum).toList, nextTo)).void
-    else result.void
   }
+
+  private def requestLocation(implicit msg: Message) =
+    reply(BotQuestions.location, replyMarkup = Keyboards.shareLocation)
+
+  private def requestDistance(implicit msg: Message) =
+    reply(BotQuestions.distance, replyMarkup = Keyboards.distance)
+
+  private def requestPlaceType(implicit msg: Message) =
+    reply(BotQuestions.place, replyMarkup = Keyboards.placeTypes)
+
+  private def replyOnStop(result: Result)(implicit msg: Message) =
+    replyMd(BotQuestions.finishSearch + result.show + BotQuestions.newSearch, replyMarkup = Keyboards.removeKeyBoard) >>
+      request(SendLocation(msg.chat.id, result.geometry.location.lat, result.geometry.location.lng))
+
+  private def replyOnDislike(implicit msg: Message) =
+    reply(BotQuestions.dislikeSearch, replyMarkup = Keyboards.removeKeyBoard)
 
   // Log the error and rethrow it back.
-  def onError[T](block: F[T]): F[T] = {
-    block onError {
+  private def onError[T](block: F[T]): F[Unit] =
+    (block onError {
       case error =>
         Logger[F].error(s"Error ${error.getClass}, the message is ${error.getMessage}.")
-    }
-  }
+    }).void
+
+  private def onError[T, A](block: OptionT[F, A]): F[Unit] = onError(block.value)
 }

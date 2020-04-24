@@ -33,20 +33,9 @@ class PlaceHunterServiceImplSpec
 
     (requestRepository.savePlace _).when(chatId, PlaceType.Restaurant).returns(Success(()))
 
-    sut.savePlace(chatId, PlaceType.Restaurant.name.some)
+    sut.savePlace(chatId, PlaceType.Restaurant)
       .success
       .value shouldBe ()
-  }
-
-  it should "throw PlaceTypeIsIncorrect exception when save a wrong place" in {
-    val chatId = Instances.genChatID()
-    val text = Instances.genText()
-
-    sut.savePlace(chatId, text.some)
-      .failure
-      .exception should have message s"Place Type is incorrect for $chatId."
-
-    (requestRepository.savePlace _).verify(*, *).never()
   }
 
   "Save Distance" should "save a correct distance" in {
@@ -55,7 +44,7 @@ class PlaceHunterServiceImplSpec
     val searchRequest = SearchRequest(PlaceType.Restaurant, location.some).some
 
     (requestRepository.saveDistance _).when(chatId, 2000).returns(Success(searchRequest))
-    sut.saveDistance(chatId, "Up to 2km".some).success.value shouldBe ()
+    sut.saveDistance(chatId, 2000).success.value shouldBe ()
   }
 
   it should "throw Search records is missing exception when save a distance without place type" in {
@@ -63,32 +52,23 @@ class PlaceHunterServiceImplSpec
 
     (requestRepository.saveDistance _).when(chatId, 2000).returns(Success(None))
 
-    sut.saveDistance(chatId, "Up to 2km".some)
+    sut.saveDistance(chatId, 2000)
       .failure
       .exception should have message s"Search Record is missing for $chatId."
-  }
-
-  it should "throw Distance Is Incorrect exception when save a wrong place" in {
-    val chatId = Instances.genChatID()
-
-    sut.saveDistance(chatId, "Up to km".some)
-      .failure
-      .exception should have message s"Distance is incorrect for $chatId."
-
-    (requestRepository.savePlace _).verify(*, *).never()
   }
 
   "Search for a place" should "find a correct place" in {
     val chatId = Instances.genChatID()
     Instances.googleResultObject should be('right)
-    val searchResponse = Success(Instances.googleResultObject.right.get)
+    val response = Instances.googleResultObject.right.get
+    val searchResponse = Success(response)
     val location = Instances.genLocation()
     val searchRequest = SearchRequest(PlaceType.Restaurant, location.some)
     val searchPlacesRequest = SearchPlacesRequest.of(searchRequest).right.get
 
     (requestRepository.saveLocation _).when(chatId, location).returns(Success(searchRequest.some))
     (placesApi.explorePlaces _).when(searchPlacesRequest).returns(searchResponse)
-    (requestRepository.clearRequest _).when(chatId).returns(Success(()))
+    (responseRepository.saveSearchResponse _).when(chatId, response.sortedByRating).returns(Success(()))
 
     sut.searchForPlaces(chatId, location) shouldBe searchResponse
   }
