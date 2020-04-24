@@ -96,17 +96,18 @@ object GooglePlacesResponseModel {
     def sortedByRating: SearchResponse = this.copy(results = this.results.sortBy(_.coefficient)(OptionDoubleOrdering))
   }
 
+  final case class FromIndex(value: Int) extends AnyVal
+
   object SearchResponse {
     implicit val SearchResponseDecoder: Decoder[SearchResponse] = deriveDecoder[SearchResponse]
     implicit val SearchResponseEncoder: Encoder[SearchResponse] = deriveEncoder[SearchResponse]
 
-    final case class FromIndex(value: Int) extends AnyVal
-  implicit def showSearchResponse(implicit from: FromIndex): Show[SearchResponse] = Show.show { response =>
-    "\n" +
-      response
-        .results
-        .zipWithIndex
-        .map { case (entry, idx) => s"${idx + 1 + from.value}. ${entry.show}\n" }
+    implicit def showSearchResponse(implicit from: FromIndex): Show[SearchResponse] = Show.show { response =>
+      "\n" +
+        response
+          .results
+          .zipWithIndex
+          .map { case (entry, idx) => s"${idx + 1 + from.value}. ${entry.show}\n" }
           .mkString
     }
   }

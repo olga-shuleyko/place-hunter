@@ -1,6 +1,7 @@
 package services
 
 import cats.MonadError
+import cats.Traverse
 import cats.syntax.applicativeError._
 import cats.syntax.either._
 import cats.syntax.flatMap._
