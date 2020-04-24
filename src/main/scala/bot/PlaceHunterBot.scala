@@ -12,6 +12,7 @@ import com.bot4s.telegram.api.declarative.{Commands, RegexCommands}
 import com.bot4s.telegram.cats.Polling
 import com.bot4s.telegram.methods.SendLocation
 import com.bot4s.telegram.models.Message
+import io.chrisdavenport.log4cats.Logger
 import model.ClientError.LikeNumberIsIncorrect
 import model.Credentials.BotToken
 import model.GooglePlacesResponseModel.{FromIndex, Response}
@@ -19,7 +20,7 @@ import model.{ChatId, Keyboards, Likes, NextResults}
 import services.PlaceHunterService
 import util.BotQuestions
 
-class PlaceHunterBot[F[_]: Async : ContextShift](token: BotToken,
+class PlaceHunterBot[F[_]: Async : ContextShift: Logger](token: BotToken,
                                                  placeHunterService: PlaceHunterService[F])
   extends AbstractBot[F](token)
     with Polling[F]
@@ -28,11 +29,9 @@ class PlaceHunterBot[F[_]: Async : ContextShift](token: BotToken,
 
   // Provide a keyboard on search
   onCommand("search") { implicit msg: Message =>
-    onError {
-      logger.debug(s"Search command: chatID=${msg.chat.id}").pure >>
-        placeHunterService.clearStorage(ChatId(msg.chat.id)) >>
-        reply(BotQuestions.place, replyMarkup = Keyboards.placeTypes).void
-    }
+    Logger[F].debug(s"Search command: chatID=${msg.chat.id}") >>
+      placeHunterService.clearStorage(ChatId(msg.chat.id)) >>
+      reply(BotQuestions.place, replyMarkup = Keyboards.placeTypes).void
   }
 
   // Requests distance
@@ -55,8 +54,8 @@ class PlaceHunterBot[F[_]: Async : ContextShift](token: BotToken,
 
   // Process absolutely all messages and reply on received location
   onMessage { implicit msg: Message =>
-    logger.info(s"Received message: chatID=${msg.chat.id}, from=${msg.from}, text=${msg.text}, location=${msg.location}"
-    ).pure >> {
+    Logger[F].info(s"Received message: chatID=${msg.chat.id}, from=${msg.from}, text=${msg.text}, location=${msg.location}"
+    ) >> {
       msg.location match {
         case Some(location) =>
           onError {
@@ -123,7 +122,7 @@ class PlaceHunterBot[F[_]: Async : ContextShift](token: BotToken,
     val nextTo = if (responseSize > until) (until, Math.min(until + 5, responseSize)).some else none
     val likeNum = Math.min(until, responseSize)
 
-    val result = logger.info(s"ChatId=${message.chat.id}, Search result is $messageToReply").pure[F] >>
+    val result = Logger[F].info(s"ChatId=${message.chat.id}, Search result is $messageToReply").pure[F] >>
       replyMd(messageToReply, replyMarkup = buttonsToReply)
     if (likeNum > 0)
       result >>
@@ -135,7 +134,7 @@ class PlaceHunterBot[F[_]: Async : ContextShift](token: BotToken,
   def onError[T](block: F[T]): F[T] = {
     block onError {
       case error =>
-        logger.error(s"Error ${error.getClass}, the message is ${error.getMessage}.").pure
+        Logger[F].error(s"Error ${error.getClass}, the message is ${error.getMessage}.")
     }
   }
 }

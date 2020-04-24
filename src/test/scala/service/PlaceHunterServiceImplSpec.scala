@@ -31,9 +31,11 @@ class PlaceHunterServiceImplSpec
   "Save Place" should "save a correct place" in {
     val chatId = Instances.genChatID()
 
-    sut.savePlace(chatId, PlaceType.Restaurant.name.some)
+    (requestRepository.savePlace _).when(chatId, PlaceType.Restaurant).returns(Success(()))
 
-    (requestRepository.savePlace _).verify(chatId, PlaceType.Restaurant)
+    sut.savePlace(chatId, PlaceType.Restaurant.name.some)
+      .success
+      .value shouldBe ()
   }
 
   it should "throw PlaceTypeIsIncorrect exception when save a wrong place" in {
@@ -54,6 +56,16 @@ class PlaceHunterServiceImplSpec
 
     (requestRepository.saveDistance _).when(chatId, 2000).returns(Success(searchRequest))
     sut.saveDistance(chatId, "Up to 2km".some).success.value shouldBe ()
+  }
+
+  it should "throw Search records is missing exception when save a distance without place type" in {
+    val chatId = Instances.genChatID()
+
+    (requestRepository.saveDistance _).when(chatId, 2000).returns(Success(None))
+
+    sut.saveDistance(chatId, "Up to 2km".some)
+      .failure
+      .exception should have message s"Search Record is missing for $chatId."
   }
 
   it should "throw Distance Is Incorrect exception when save a wrong place" in {
