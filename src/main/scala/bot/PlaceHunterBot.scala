@@ -20,7 +20,7 @@ import model.Credentials.BotToken
 import model.GooglePlacesResponseModel.{FromIndex, Response, Result}
 import model.{ChatId, Distance, Keyboards, Likes, NextResults, PlaceType}
 import services.PlaceHunterService
-import util.BotQuestions
+import util.{BotQuestions, Util}
 
 class PlaceHunterBot[F[_]: Async : ContextShift: Logger](token: BotToken,
                                                          placeHunterService: PlaceHunterService[F])
@@ -103,9 +103,10 @@ class PlaceHunterBot[F[_]: Async : ContextShift: Logger](token: BotToken,
       }
   }
 
-  private def replyWithSearchResults(response: Response, from: Int = 0, until: Int = 5)(implicit message: Message) = {
+  private def replyWithSearchResults(response: Response, from: Int = 0, until: Int = Util.numberOfReplies)
+                                    (implicit message: Message) = {
     val responseSize = response.size
-    val nextTo = if (responseSize > until) (until, Math.min(until + 5, responseSize)).some else none
+    val nextTo = if (responseSize > until) (until, Math.min(until + Util.numberOfReplies, responseSize)).some else none
     val remainingAmount = Math.min(until, responseSize)
 
     val replyResults = replySearchResults(response, from)

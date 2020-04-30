@@ -11,20 +11,20 @@ class InMemorySearchResponseRepository[F[_]: Monad](val responses: Ref[F, Map[Ch
     responses.update(map => map + (chatId -> response))
 
   override def loadResponse(chatId: ChatId, from: Int, until: Int): F[Option[(SearchResponse, Int)]] =
-    responses.get.map { cachedResponse =>
-      cachedResponse.get(chatId).map { searchResponse =>
-        (searchResponse.copy(results = searchResponse.results.slice(from, until)), searchResponse.results.size)
-      }
+    load(chatId) { searchResponse =>
+      (searchResponse.copy(results = searchResponse.results.slice(from, until)), searchResponse.results.size)
     }
 
-  override def loadResponse(chatId: ChatId, idx: Int): F[Option[SearchResponse]] =
-    responses.get.map { cachedResponse =>
-      cachedResponse.get(chatId).map { searchResponse =>
-        searchResponse.copy(results = searchResponse.results.lift(idx - 1).toList)
-      }
+  override def loadResult(chatId: ChatId, idx: Int): F[Option[SearchResponse]] =
+    load(chatId) { searchResponse =>
+      searchResponse.copy(results = searchResponse.results.lift(idx - 1).toList)
     }
 
   override def clearResponse(chatId: ChatId): F[Unit] =
     responses.update(map => map - chatId)
 
+  private def load[A](chatId: ChatId)(transform: SearchResponse => A) =
+    responses.get.map { cachedResponse =>
+      cachedResponse.get(chatId).map(transform)
+    }
 }

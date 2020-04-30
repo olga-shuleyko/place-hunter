@@ -3,6 +3,7 @@ package model
 import com.bot4s.telegram.models.{InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove}
 import cats.syntax.option._
 import model.PlaceType._
+import util.Util
 
 import scala.util.matching.Regex
 
@@ -11,7 +12,7 @@ object Keyboards {
   val placeTypes = keyboard(
     places
       .map(place => KeyboardButton(place.name))
-      .grouped(4)
+      .grouped(3)
       .toList
   )
   val shareLocation = keyboard(List(List(KeyboardButton("Send my current location", requestLocation = true.some))))
@@ -35,8 +36,8 @@ object Keyboards {
 
   def likesKeyboard(buttons: List[Int], next: Option[(Int, Int)]) = {
     val likeButtons = buttons
-      .map { idx => KeyboardButton(s"👍 ${idx.toString}")}
-      .grouped(5)
+      .map { idx => KeyboardButton(s"👍 ${idx.toString}") }
+      .grouped(Util.numberOfReplies)
       .toList
     val nextResultButton = next.map { case (from, to) =>
       val start = from + 1

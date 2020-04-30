@@ -8,13 +8,13 @@ import cats.syntax.functor._
 import cats.syntax.option._
 import com.bot4s.telegram.models.Location
 import model.ClientError.ParseError
-import model.GooglePlacesResponseModel.{Response, Result}
+import model.GooglePlacesResponseModel.{Response, Result, SearchResponse}
 import model.PlacesRequestModel.SearchPlacesRequest
 import model.RepositoryError.SearchRecordIsMissing
-import model.{ChatId, PlaceType}
+import model.{ChatId, PlaceType, SearchRequest}
 import places.api.PlacesAPI
 import repositories.{SearchRequestRepository, SearchResponseRepository}
-import util.GooglePlacesAPI
+import util.{GooglePlacesAPI, Util}
 
 class PlaceHunterServiceImpl[F[_]: MonadError[*[_], Throwable]](requestRepository: SearchRequestRepository[F],
                                                                 responseRepository: SearchResponseRepository[F],
@@ -34,11 +34,11 @@ class PlaceHunterServiceImpl[F[_]: MonadError[*[_], Throwable]](requestRepositor
       sortedResponse = response.sortedByRating
       _ <- responseRepository.saveSearchResponse(chatId, sortedResponse)
     } yield {
-      val buttons = sortedResponse.results.zipWithIndex.map {
-        case (result, idx) =>
-          (idx + 1, GooglePlacesAPI.linkToRoute(searchRequest.location.get, result.geometry.location, result.placeId))
-      }
-      Response(sortedResponse.copy(results = sortedResponse.results.take(5)), buttons.take(5), sortedResponse.results.size)
+      Response(sortedResponse.copy(
+        results = sortedResponse.results.take(Util.numberOfReplies)),
+        calculateButtons(sortedResponse, searchRequest).take(Util.numberOfReplies),
+        sortedResponse.results.size
+      )
     }
   }
 
@@ -52,7 +52,7 @@ class PlaceHunterServiceImpl[F[_]: MonadError[*[_], Throwable]](requestRepositor
   override def stopSearch(chatId: ChatId, likes: Option[Int]): F[Option[Result]] = {
     import cats.instances.option._
     for {
-      result <- Traverse[Option].flatTraverse(likes)(idx => responseRepository.loadResponse(chatId, idx))
+      result <- Traverse[Option].flatTraverse(likes)(idx => responseRepository.loadResult(chatId, idx))
       _ <- clearStorage(chatId)
     } yield result.flatMap(_.results.headOption)
   }
@@ -66,12 +66,16 @@ class PlaceHunterServiceImpl[F[_]: MonadError[*[_], Throwable]](requestRepositor
       request <- requestRepository.loadRequest(chatId)
     } yield {
       import cats.instances.option._
-      (responses, request).tupled.map { case ((response, size), request) =>
-        val buttons = response.results.zipWithIndex.map {
-          case (result, idx) =>
-            (idx + 1 + from, GooglePlacesAPI.linkToRoute(request.location.get, result.geometry.location, result.placeId))
-        }
+      (responses, request).mapN { case ((response, size), request) =>
+        val buttons = calculateButtons(response, request, from)
         Response(response, buttons, size)
       }
     }
+
+  private def calculateButtons(searchResponse: SearchResponse, searchRequest: SearchRequest, from: Int = 0) = {
+    searchResponse.results.zipWithIndex.map {
+      case (result, idx) =>
+        (idx + 1 + from, GooglePlacesAPI.linkToRoute(searchRequest.location.get, result.geometry.location, result.placeId))
+    }
+  }
 }

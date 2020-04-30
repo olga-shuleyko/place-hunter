@@ -45,19 +45,19 @@ object PlaceType {
   }
 
   final object SubwayStation extends PlaceType {
-    override val name: String = "Subway station\uD83D\uDE8A"
+    override val name: String = "Subway\uD83D\uDE8A"
 
     override def category: String = "subway_station"
   }
 
   final object TrainStation extends PlaceType {
-    override val name: String = "Train station\uD83D\uDE82"
+    override val name: String = "Trains\uD83D\uDE82"
 
     override def category: String = "train_station"
   }
 
   final object BookStore extends PlaceType {
-    override val name: String = "Book Store\uD83D\uDCDA "
+    override val name: String = "Books\uD83D\uDCDA "
 
     override def category: String = "book_store"
   }
@@ -93,7 +93,7 @@ object PlaceType {
   }
 
   final object TouristAttraction extends PlaceType {
-    override val name: String = "Tourist Attraction\uD83C\uDF8E"
+    override val name: String = "Tourism\uD83C\uDF8E"
 
     override def category: String = "tourist_attraction"
   }

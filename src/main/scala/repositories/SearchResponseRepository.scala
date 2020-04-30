@@ -8,7 +8,7 @@ trait SearchResponseRepository[F[_]] {
 
   def loadResponse(chatId: ChatId, from: Int, until: Int): F[Option[(SearchResponse, Int)]]
 
-  def loadResponse(chatId: ChatId, idx: Int): F[Option[SearchResponse]]
+  def loadResult(chatId: ChatId, idx: Int): F[Option[SearchResponse]]
 
   def clearResponse(chatId: ChatId): F[Unit]
 }

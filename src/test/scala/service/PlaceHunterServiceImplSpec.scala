@@ -5,7 +5,7 @@ import cats.syntax.option._
 import model.PlacesRequestModel.SearchPlacesRequest
 import model.{PlaceType, SearchRequest}
 import org.scalamock.scalatest.MockFactory
-import org.scalatest.TryValues
+import org.scalatest.{OptionValues, TryValues}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import places.api.PlacesAPI
@@ -19,6 +19,7 @@ class PlaceHunterServiceImplSpec
   extends AnyFlatSpec
     with Matchers
     with MockFactory
+    with OptionValues
     with TryValues {
 
   val requestRepository: SearchRequestRepository[Try] = stub[SearchRequestRepository[Try]]
@@ -70,7 +71,11 @@ class PlaceHunterServiceImplSpec
     (placesApi.explorePlaces _).when(searchPlacesRequest).returns(searchResponse)
     (responseRepository.saveSearchResponse _).when(chatId, response.sortedByRating).returns(Success(()))
 
-    sut.searchForPlaces(chatId, location) shouldBe searchResponse
+    val result = sut.searchForPlaces(chatId, location)
+    result
+      .success
+      .value
+      .searchResponse shouldBe response
   }
 
   it should "not search if save of the location fails" in {
@@ -101,5 +106,24 @@ class PlaceHunterServiceImplSpec
 
     (placesApi.explorePlaces _).when(*).never()
     (requestRepository.clearRequest _).verify(*).never()
+  }
+
+  "Search for the next places" should "find a correct place" in {
+    val chatId = Instances.genChatID()
+    Instances.googleResultObject should be('right)
+    val response = Instances.googleResultObject.right.get
+    val searchResponse = Success((response, 1).some)
+    val location = Instances.genLocation()
+    val searchRequest = SearchRequest(PlaceType.Restaurant, location.some)
+
+    (responseRepository.loadResponse _).when(chatId, 6, 10).returns(searchResponse)
+    (requestRepository.loadRequest _).when(chatId).returns(Success(searchRequest.some))
+
+    val result = sut.searchForPlaces(chatId, 6, 10)
+    result
+      .success
+      .value
+      .value
+      .searchResponse shouldBe response
   }
 }
