@@ -16,7 +16,7 @@ val slf4jVersion = "1.7.5"
 val scalaLoggingVersion = "3.9.2"
 val http4sVersion = "0.20.21"
 val circeVersion = "0.11.1"
-val doobieVersion = "0.8.8"
+val doobieVersion = "0.7.1"
 val mysqlConnector = "8.0.20"
 
 resolvers += Resolver.sonatypeRepo("releases")
@@ -42,7 +42,6 @@ libraryDependencies ++= Seq(
   "io.chrisdavenport" %% "log4cats-slf4j" % "1.0.1",
   "mysql" % "mysql-connector-java" % mysqlConnector,
   "org.tpolecat" %% "doobie-core" % doobieVersion,
-  "org.tpolecat" %% "doobie-specs2" % doobieVersion,
   "com.typesafe" % "config" % "1.4.0",
   "org.scalatest" %% "scalatest" % "3.1.1" % Test,
   "org.scalamock" %% "scalamock" % "4.4.0" % Test,

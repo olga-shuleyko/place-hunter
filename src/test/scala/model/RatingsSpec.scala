@@ -23,7 +23,7 @@ class RatingsSpec extends AnyFlatSpec with Matchers with OptionValues with Eithe
     val result = googleResultObject.right.get.results.headOption.value
     val resultLess = result.copy(rating = 4d.some)
     val resultBigger = result.copy(rating = 6d.some)
-    val response = SearchResponse(OK.some, List(result, resultLess, resultBigger))
+    val response = SearchResponse(OK, List(result, resultLess, resultBigger))
     val expectedResult = List(resultBigger, result, resultLess)
 
     response.sortedByRating.results should contain theSameElementsInOrderAs expectedResult
@@ -36,7 +36,7 @@ class RatingsSpec extends AnyFlatSpec with Matchers with OptionValues with Eithe
     val resultBigger = result.copy(rating = 6d.some)
     val resultWoRating = result.copy(rating = 0d.some)
     val resultWoReviews = result.copy(userRatingsTotal = 0.some)
-    val response = SearchResponse(OK.some, List(result, resultWoRating, resultWoReviews, resultLess, resultBigger))
+    val response = SearchResponse(OK, List(result, resultWoRating, resultWoReviews, resultLess, resultBigger))
     val expectedResult = List(resultBigger, result, resultLess, resultWoRating, resultWoReviews)
 
     response.sortedByRating.results should contain theSameElementsInOrderAs expectedResult

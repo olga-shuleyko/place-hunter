@@ -61,7 +61,7 @@ object GooglePlacesResponseModel {
                           priceLevel: Option[Int],
                           rating: Option[Double],
                           userRatingsTotal: Option[Int],
-                          vicinity: String) {
+                          vicinity: Option[String]) {
 
     val extractRating: Option[(Double, Int)] =
       for {
@@ -91,7 +91,7 @@ object GooglePlacesResponseModel {
         |""".stripMargin}
   }
 
-  final case class SearchResponse(status: Option[Status], results: List[Result], nextPageToken: Option[String] = None) {
+  final case class SearchResponse(status: Status, results: List[Result], nextPageToken: Option[String] = None) {
     def sortedByRating: SearchResponse = this.copy(results = this.results.sortBy(_.coefficient)(OptionDoubleOrdering))
   }
 

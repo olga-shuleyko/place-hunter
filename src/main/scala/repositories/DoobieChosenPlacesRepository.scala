@@ -54,7 +54,7 @@ class DoobieChosenPlacesRepository[F[_]: Sync](tx: Transactor[F]) extends Chosen
         priceLevel = None,
         rating = None,
         userRatingsTotal = None,
-        vicinity = ""
+        vicinity = None
       )
     }
 }

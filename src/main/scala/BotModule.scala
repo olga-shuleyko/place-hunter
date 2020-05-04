@@ -29,9 +29,9 @@ class BotModule[F[_]: Async: ContextShift](token: BotToken,
   val schemaManager = wire[DoobieSchemaManager[F]]
 
   // Uncomment to request data from Google
-  //val placeApi: GooglePlacesApi[F] = wire[GooglePlacesApi[F]]
+  val placeApi: GooglePlacesApi[F] = wire[GooglePlacesApi[F]]
 
-  val placeApi: MockGooglePlacesAPI[F] = wire[MockGooglePlacesAPI[F]]
+  //val placeApi: MockGooglePlacesAPI[F] = wire[MockGooglePlacesAPI[F]]
   val placeHunterService: PlaceHunterServiceImpl[F] = wire[PlaceHunterServiceImpl[F]]
   val bot: PlaceHunterBot[F] = wire[PlaceHunterBot[F]]
 

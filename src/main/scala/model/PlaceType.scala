@@ -57,7 +57,7 @@ object PlaceType {
   }
 
   final object BookStore extends PlaceType {
-    override val name: String = "Books\uD83D\uDCDA "
+    override val name: String = "Books\uD83D\uDCDA"
 
     override def category: String = "book_store"
   }
@@ -81,7 +81,7 @@ object PlaceType {
   }
 
   final object Zoo extends PlaceType {
-    override val name: String = "Zoo\uD83D\uDC08 "
+    override val name: String = "Zoo\uD83D\uDC08"
 
     override def category: String = "zoo"
   }
