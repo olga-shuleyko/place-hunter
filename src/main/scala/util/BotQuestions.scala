@@ -26,4 +26,7 @@ object BotQuestions {
   val dislikeSearch =
     """I'm so sorry to disappoint you!
       |Please start a new search with /search.""".stripMargin
+
+  val noChosenPlaces = "You haven't chosen anything yet."
+  val chosenPlaces = "Chosen places:\n"
 }

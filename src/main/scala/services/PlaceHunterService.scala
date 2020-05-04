@@ -2,7 +2,7 @@ package services
 
 import com.bot4s.telegram.models.Location
 import model.GooglePlacesResponseModel.{Response, Result}
-import model.{ChatId, PlaceType, SearchRequest}
+import model.{ChatId, PlaceType}
 
 trait PlaceHunterService[F[_]] {
 
@@ -17,4 +17,6 @@ trait PlaceHunterService[F[_]] {
   def stopSearch(chatId: ChatId, likes: Option[Int]): F[Option[Result]]
 
   def clearStorage(chatId: ChatId): F[Unit]
+
+  def loadChosenPlaces(chatId: ChatId): F[List[Result]]
 }

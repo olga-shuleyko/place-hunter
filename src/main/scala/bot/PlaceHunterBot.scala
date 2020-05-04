@@ -20,6 +20,7 @@ import model.Credentials.BotToken
 import model.GooglePlacesResponseModel.{FromIndex, Response, Result}
 import model.{ChatId, Distance, Keyboards, Likes, NextResults, PlaceType}
 import services.PlaceHunterService
+import util.GooglePlacesAPI.linkToPlace
 import util.{BotQuestions, Util}
 
 class PlaceHunterBot[F[_]: Async : ContextShift: Logger](token: BotToken,
@@ -103,6 +104,16 @@ class PlaceHunterBot[F[_]: Async : ContextShift: Logger](token: BotToken,
       }
   }
 
+  // Provide a keyboard on search
+  onCommand("chosen_places") { implicit msg: Message =>
+    onError {
+      for {
+        res <- placeHunterService.loadChosenPlaces(ChatId(msg.chat.id))
+        _ <- replyChosenPlaces(res)
+      } yield ()
+    }
+  }
+
   private def replyWithSearchResults(response: Response, from: Int = 0, until: Int = Util.numberOfReplies)
                                     (implicit message: Message) = {
     val responseSize = response.size
@@ -125,6 +136,16 @@ class PlaceHunterBot[F[_]: Async : ContextShift: Logger](token: BotToken,
         (BotQuestions.recommends + response.searchResponse.show, Keyboards.inlineKeyboardButtons(response.buttons))
     Logger[F].info(s"ChatId=${message.chat.id}, SearchResult is $messageToReply").pure[F] >>
       replyMd(messageToReply, replyMarkup = buttonsToReply)
+  }
+
+  private def replyChosenPlaces(res: List[Result])(implicit message: Message) = {
+    val text = if (res.isEmpty) BotQuestions.noChosenPlaces else {
+      BotQuestions.chosenPlaces + res.map { entry =>
+        val link = linkToPlace(entry.placeId, entry.name)
+        s"[${entry.name}]($link)"
+      }.mkString("\n")
+    }
+    replyMd(text)
   }
 
   private def requestLocation(implicit msg: Message) =

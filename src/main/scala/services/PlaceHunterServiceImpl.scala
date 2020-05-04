@@ -1,5 +1,6 @@
 package services
 
+import cats.data.OptionT
 import cats.{MonadError, Traverse}
 import cats.syntax.apply._
 import cats.syntax.either._
@@ -13,11 +14,12 @@ import model.PlacesRequestModel.SearchPlacesRequest
 import model.RepositoryError.SearchRecordIsMissing
 import model.{ChatId, PlaceType, SearchRequest}
 import places.api.PlacesAPI
-import repositories.{SearchRequestRepository, SearchResponseRepository}
+import repositories.{ChosenPlacesRepository, SearchRequestRepository, SearchResponseRepository}
 import util.{GooglePlacesAPI, Util}
 
 class PlaceHunterServiceImpl[F[_]: MonadError[*[_], Throwable]](requestRepository: SearchRequestRepository[F],
                                                                 responseRepository: SearchResponseRepository[F],
+                                                                chosenPlacesRepository: ChosenPlacesRepository[F],
                                                                 placesApi: PlacesAPI[F])
   extends PlaceHunterService[F] {
 
@@ -51,10 +53,13 @@ class PlaceHunterServiceImpl[F[_]: MonadError[*[_], Throwable]](requestRepositor
 
   override def stopSearch(chatId: ChatId, likes: Option[Int]): F[Option[Result]] = {
     import cats.instances.option._
-    for {
-      result <- Traverse[Option].flatTraverse(likes)(idx => responseRepository.loadResult(chatId, idx))
-      _ <- clearStorage(chatId)
-    } yield result.flatMap(_.results.headOption)
+    import cats.syntax.traverse._
+    (for {
+      searchResp <- OptionT(likes.flatTraverse(idx => responseRepository.loadResult(chatId, idx)))
+      resultOpt = searchResp.results.headOption
+      _ <- OptionT(resultOpt.traverse(result => chosenPlacesRepository.savePlace(chatId, result)))
+      _ <- OptionT.liftF(clearStorage(chatId))
+    } yield resultOpt).value.map(_.flatten)
   }
 
   override def clearStorage(chatId: ChatId): F[Unit] =
@@ -78,4 +83,7 @@ class PlaceHunterServiceImpl[F[_]: MonadError[*[_], Throwable]](requestRepositor
         (idx + 1 + from, GooglePlacesAPI.linkToRoute(searchRequest.location.get, result.geometry.location, result.placeId))
     }
   }
+
+  override def loadChosenPlaces(chatId: ChatId): F[List[Result]] =
+    chosenPlacesRepository.loadPlaces(chatId)
 }

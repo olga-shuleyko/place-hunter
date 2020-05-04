@@ -54,13 +54,12 @@ object GooglePlacesResponseModel {
   }
 
   final case class Result(geometry: Geometry,
-                          id: String,
+                          id: Option[String],
                           name: String,
                           placeId: String,
                           openingHours: Option[OpeningHours],
                           priceLevel: Option[Int],
                           rating: Option[Double],
-                          types: List[String],
                           userRatingsTotal: Option[Int],
                           vicinity: String) {
 
@@ -92,7 +91,7 @@ object GooglePlacesResponseModel {
         |""".stripMargin}
   }
 
-  final case class SearchResponse(status: Status, results: List[Result], nextPageToken: Option[String] = None) {
+  final case class SearchResponse(status: Option[Status], results: List[Result], nextPageToken: Option[String] = None) {
     def sortedByRating: SearchResponse = this.copy(results = this.results.sortBy(_.coefficient)(OptionDoubleOrdering))
   }
 
