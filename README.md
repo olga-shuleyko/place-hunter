@@ -11,3 +11,33 @@ Place Hunter is a Telegram Bot that helps to find a nice place nearby.
     * GOOGLE_API_KEY
 * Run Launcher
 * Enjoy talking to your bot!
+
+## Bot
+
+* @EGPlaceHunterBot helps to find a nice place in some radius:
+    * start a new search with /search command
+    * bot asks questions
+        * place type
+        * distance
+        * send location
+    * bot lists up to 20 places
+        * places are sorted by rating and reviews
+        * shows 5 places and allows to show next 5
+        * liked/chosen places are stored
+    * last 10 chosen places can be listed with /chosen_locations
+
+## Technologies
+
+* bot4s
+* http4s client
+* circe
+* tagless final
+* cats, cats effects
+* log4cats
+* doobie, mysql, hikari CP
+
+## Difficulties
+
+* versions of libraries
+* deal with monad stack F[Option[...]] -> monad transformers(OptionT) helped
+* how to delay and wrap side effects properly

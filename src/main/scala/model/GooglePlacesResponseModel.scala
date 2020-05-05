@@ -83,11 +83,12 @@ object GooglePlacesResponseModel {
     implicit val showResult: Show[Result] = Show.show { res =>
       val rating = res.rating.getOrElse(without) + star
       val review = res.userRatingsTotal.getOrElse(0) + reviews
+      val address = res.vicinity.getOrElse("")
       val priceLevel = res.priceLevel.fold("")(value => money * value)
       val isOpened = res.openingHours.fold("")(value => if (value.openNow) placeIsOpen else placeIsClosed)
       val link = linkToPlace(res.placeId, res.name)
     s"""|[${res.name}]($link) $rating($review) $priceLevel
-        |_${res.vicinity}${isOpened}_
+        |_${address}${isOpened}_
         |""".stripMargin}
   }
 
