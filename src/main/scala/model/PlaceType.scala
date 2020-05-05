@@ -81,9 +81,9 @@ object PlaceType {
   }
 
   final object Zoo extends PlaceType {
-    override val name: String = "Zoo\uD83D\uDC08"
+    override val name: String = "Pets\uD83D\uDC08"
 
-    override def category: String = "zoo"
+    override def category: String = "pet_store"
   }
 
   final object Pharmacy extends PlaceType {
@@ -104,8 +104,20 @@ object PlaceType {
     override def category: String = "car_rental"
   }
 
+  final object GasStation extends PlaceType {
+    override val name: String = "Gas Station⛽️"
+
+    override def category: String = "gas_station"
+  }
+
+  final object Cinema extends PlaceType {
+    override val name: String = "Cinema\uD83C\uDF7F️"
+
+    override def category: String = "movie_theater"
+  }
+
   val places = List(Restaurant, Cafe, Bar, Gym, Atm, Bank, SubwayStation, TrainStation, Museum,
-    BookStore, Supermarket, Doctor, Pharmacy, Zoo, TouristAttraction, CarRental)
+    BookStore, Supermarket, Doctor, Pharmacy, Zoo, TouristAttraction, CarRental, GasStation, Cinema)
 
   private val mapPlaces = places.map(place => place.name -> place).toMap
 

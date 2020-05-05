@@ -32,7 +32,7 @@ class PlaceHunterBot[F[_]: Async : ContextShift: Logger](token: BotToken,
 
   // Provide a keyboard on search
   onCommand("search") { implicit msg: Message =>
-    onError {
+    attempt {
       Logger[F].info(s"Search command: chatID=${msg.chat.id}") >>
         placeHunterService.clearStorage(ChatId(msg.chat.id)) >> requestPlaceType
     }
@@ -41,7 +41,7 @@ class PlaceHunterBot[F[_]: Async : ContextShift: Logger](token: BotToken,
   // Requests distance
   onRegex(Keyboards.placeRegex) { implicit msg: Message =>
     _ =>
-      onError {
+      attempt {
         val chatId = ChatId(msg.chat.id)
         PlaceType.parse(msg.text).map { placeType =>
           placeHunterService.savePlace(chatId, placeType) >> requestDistance
@@ -52,7 +52,7 @@ class PlaceHunterBot[F[_]: Async : ContextShift: Logger](token: BotToken,
   // Requests location
   onRegex(Keyboards.distancesRegex) { implicit msg: Message =>
     _ =>
-      onError {
+      attempt {
         val chatId = ChatId(msg.chat.id)
         Distance.parse(msg.text).map { distance =>
           placeHunterService.saveDistance(chatId, distance) >> requestLocation
@@ -62,7 +62,7 @@ class PlaceHunterBot[F[_]: Async : ContextShift: Logger](token: BotToken,
 
   // Process absolutely all messages and reply on received location
   onMessage { implicit msg: Message =>
-    onError {
+    attempt {
       import cats.instances.option._
       Logger[F].info(s"Received message:chatID=${msg.chat.id},from=${msg.from},text=${msg.text},location=${msg.location}") >>
         Traverse[Option].traverse(msg.location) { location =>
@@ -76,7 +76,7 @@ class PlaceHunterBot[F[_]: Async : ContextShift: Logger](token: BotToken,
 
   onRegex(Keyboards.likesRegex) { implicit msg: Message =>
     _ =>
-      onError {
+      attempt {
         for {
           likeNumber <- OptionT.fromOption(Likes.parse(msg.text))
           result <- OptionT(placeHunterService.stopSearch(ChatId(msg.chat.id), likeNumber.some))
@@ -87,14 +87,14 @@ class PlaceHunterBot[F[_]: Async : ContextShift: Logger](token: BotToken,
 
   onRegex(Keyboards.dislikeRegex) { implicit msg: Message =>
     _ =>
-      onError {
+      attempt {
         placeHunterService.stopSearch(ChatId(msg.chat.id), none) >> replyOnDislike
       }
   }
 
   onRegex(Keyboards.nextResultsRegex) { implicit msg: Message =>
     _ =>
-      onError {
+      attempt {
         for {
           (from, until) <- OptionT(NextResults.parse(msg.text).pure[F])
           start = from - 1
@@ -106,7 +106,7 @@ class PlaceHunterBot[F[_]: Async : ContextShift: Logger](token: BotToken,
 
   // Provide a keyboard on search
   onCommand("chosen_places") { implicit msg: Message =>
-    onError {
+    attempt {
       for {
         res <- placeHunterService.loadChosenPlaces(ChatId(msg.chat.id))
         _ <- replyChosenPlaces(res)
@@ -165,11 +165,11 @@ class PlaceHunterBot[F[_]: Async : ContextShift: Logger](token: BotToken,
     reply(BotQuestions.dislikeSearch, replyMarkup = Keyboards.removeKeyBoard)
 
   // Log the error and rethrow it back.
-  private def onError[T](block: F[T]): F[Unit] =
+  private def attempt[T](block: F[T]): F[Unit] =
     (block onError {
       case error =>
         Logger[F].error(s"Error ${error.getClass}, the message is ${error.getMessage}.")
     }).void
 
-  private def onError[T, A](block: OptionT[F, A]): F[Unit] = onError(block.value)
+  private def attempt[T, A](block: OptionT[F, A]): F[Unit] = attempt(block.value)
 }

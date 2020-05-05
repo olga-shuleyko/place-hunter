@@ -27,7 +27,7 @@ object Keyboards {
   val likesRegex: Regex = "👍 \\d+".r
   val dislike = "👎"
   val dislikeRegex: Regex = dislike.r
-  val nextResultsRegex: Regex = "[N|n]ext results \\d+-?+\\d+".r
+  val nextResultsRegex: Regex = "[N|n]ext results \\d+-?+\\d*".r
 
   def inlineKeyboardButtons(buttons: List[(Int, String)]) =
     InlineKeyboardMarkup(
