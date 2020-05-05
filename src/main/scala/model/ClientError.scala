@@ -20,4 +20,8 @@ object ClientError {
     override def getMessage: String = message
   }
 
+  final case class EnvVarIsMissing(name: String) extends ClientError {
+    override def getMessage: String = s"Environment variable with name: $name is missing."
+  }
+
 }

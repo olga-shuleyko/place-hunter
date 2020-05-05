@@ -23,8 +23,9 @@ import services.PlaceHunterService
 import util.GooglePlacesAPI.linkToPlace
 import util.{BotQuestions, Util}
 
-class PlaceHunterBot[F[_]: Async : ContextShift: Logger](token: BotToken,
-                                                         placeHunterService: PlaceHunterService[F])
+class PlaceHunterBot[F[_]: Async : ContextShift](token: BotToken,
+                                                 logger: Logger[F],
+                                                 placeHunterService: PlaceHunterService[F])
   extends AbstractBot[F](token)
     with Polling[F]
     with Commands[F]
@@ -33,7 +34,7 @@ class PlaceHunterBot[F[_]: Async : ContextShift: Logger](token: BotToken,
   // Provide a keyboard on search
   onCommand("search") { implicit msg: Message =>
     attempt {
-      Logger[F].info(s"Search command: chatID=${msg.chat.id}") >>
+      logger.info(s"Search command: chatID=${msg.chat.id}") >>
         placeHunterService.clearStorage(ChatId(msg.chat.id)) >> requestPlaceType
     }
   }
@@ -64,7 +65,7 @@ class PlaceHunterBot[F[_]: Async : ContextShift: Logger](token: BotToken,
   onMessage { implicit msg: Message =>
     attempt {
       import cats.instances.option._
-      Logger[F].info(s"Received message:chatID=${msg.chat.id},from=${msg.from},text=${msg.text},location=${msg.location}") >>
+      logger.info(s"Received message:chatID=${msg.chat.id},from=${msg.from},text=${msg.text},location=${msg.location}") >>
         Traverse[Option].traverse(msg.location) { location =>
           for {
             result <- placeHunterService.searchForPlaces(ChatId(msg.chat.id), location)
@@ -134,7 +135,7 @@ class PlaceHunterBot[F[_]: Async : ContextShift: Logger](token: BotToken,
         (BotQuestions.nothingToRecommend, Keyboards.removeKeyBoard)
       else
         (BotQuestions.recommends + response.searchResponse.show, Keyboards.inlineKeyboardButtons(response.buttons))
-    Logger[F].info(s"ChatId=${message.chat.id}, SearchResult is $messageToReply") >>
+    logger.info(s"ChatId=${message.chat.id}, SearchResult is $messageToReply") >>
       replyMd(messageToReply, replyMarkup = buttonsToReply)
   }
 
@@ -168,7 +169,7 @@ class PlaceHunterBot[F[_]: Async : ContextShift: Logger](token: BotToken,
   private def attempt[T](block: F[T]): F[Unit] =
     (block onError {
       case error =>
-        Logger[F].error(s"Error ${error.getClass}, the message is ${error.getMessage}.")
+        logger.error(s"Error ${error.getClass}, the message is ${error.getMessage}.")
     }).void
 
   private def attempt[T, A](block: OptionT[F, A]): F[Unit] = attempt(block.value)
