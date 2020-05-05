@@ -52,14 +52,13 @@ class PlaceHunterServiceImpl[F[_]: MonadError[*[_], Throwable]](requestRepositor
   }
 
   override def stopSearch(chatId: ChatId, likes: Option[Int]): F[Option[Result]] = {
-    import cats.instances.option._
-    import cats.syntax.traverse._
     (for {
-      searchResp <- OptionT(likes.flatTraverse(idx => responseRepository.loadResult(chatId, idx)))
-      resultOpt = searchResp.results.headOption
-      _ <- OptionT(resultOpt.traverse(result => chosenPlacesRepository.savePlace(chatId, result)))
+      likeIndex <- OptionT.fromOption(likes)
+      loadedResponse <- OptionT(responseRepository.loadResult(chatId, likeIndex))
+      result <- OptionT.fromOption(loadedResponse.results.headOption)
+      _ <- OptionT.liftF(chosenPlacesRepository.savePlace(chatId, result))
       _ <- OptionT.liftF(clearStorage(chatId))
-    } yield resultOpt).value.map(_.flatten)
+    } yield result).value
   }
 
   override def clearStorage(chatId: ChatId): F[Unit] =

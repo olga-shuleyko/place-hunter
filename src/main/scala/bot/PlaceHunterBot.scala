@@ -96,7 +96,7 @@ class PlaceHunterBot[F[_]: Async : ContextShift: Logger](token: BotToken,
     _ =>
       attempt {
         for {
-          (from, until) <- OptionT(NextResults.parse(msg.text).pure[F])
+          (from, until) <- OptionT.fromOption(NextResults.parse(msg.text))
           start = from - 1
           result <- OptionT(placeHunterService.searchForPlaces(ChatId(msg.chat.id), start, until))
           _ <- OptionT.liftF(replyWithSearchResults(result, start, until))
@@ -134,7 +134,7 @@ class PlaceHunterBot[F[_]: Async : ContextShift: Logger](token: BotToken,
         (BotQuestions.nothingToRecommend, Keyboards.removeKeyBoard)
       else
         (BotQuestions.recommends + response.searchResponse.show, Keyboards.inlineKeyboardButtons(response.buttons))
-    Logger[F].info(s"ChatId=${message.chat.id}, SearchResult is $messageToReply").pure[F] >>
+    Logger[F].info(s"ChatId=${message.chat.id}, SearchResult is $messageToReply") >>
       replyMd(messageToReply, replyMarkup = buttonsToReply)
   }
 
