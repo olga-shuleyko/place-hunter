@@ -39,7 +39,8 @@ class DoobieChosenPlacesRepository[F[_]: Sync](tx: Transactor[F]) extends Chosen
     queryPlaces ++
       fr"""WHERE CP.chat_id = $chatId
           |GROUP BY CP.chat_id,CP.place_id,P.place_name,P.lat,P.lng
-          |ORDER BY MAX(CP.created_timestamp) DESC;""".stripMargin
+          |ORDER BY MAX(CP.created_timestamp) DESC
+          |LIMIT 10;""".stripMargin
 
   type ChosenPlace = (Long, String, String, Double, Double)
 

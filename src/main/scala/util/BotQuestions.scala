@@ -28,5 +28,5 @@ object BotQuestions {
       |Please start a new search with /search.""".stripMargin
 
   val noChosenPlaces = "You haven't chosen anything yet."
-  val chosenPlaces = "Chosen places:\n"
+  val chosenPlaces = "Last 10 chosen places:\n"
 }
