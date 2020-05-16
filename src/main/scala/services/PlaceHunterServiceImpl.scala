@@ -1,46 +1,88 @@
 package services
 
-import cats.MonadError
-import cats.syntax.applicativeError._
+import cats.data.OptionT
+import cats.{MonadError, Traverse}
+import cats.syntax.apply._
 import cats.syntax.either._
 import cats.syntax.flatMap._
 import cats.syntax.functor._
 import cats.syntax.option._
 import com.bot4s.telegram.models.Location
-import model.ClientError.{DistanceIsIncorrect, ParseError, PlaceTypeIsIncorrect}
-import model.GooglePlacesResponseModel.SearchResponse
+import model.ClientError.ParseError
+import model.GooglePlacesResponseModel.{Response, Result, SearchResponse}
 import model.PlacesRequestModel.SearchPlacesRequest
 import model.RepositoryError.SearchRecordIsMissing
-import model.{ChatId, Distance, PlaceType}
+import model.{ChatId, PlaceType, SearchRequest}
 import places.api.PlacesAPI
-import repositories.SearchRequestRepository
+import repositories.{ChosenPlacesRepository, SearchRequestRepository, SearchResponseRepository}
+import util.{GooglePlacesAPI, Util}
 
 class PlaceHunterServiceImpl[F[_]: MonadError[*[_], Throwable]](requestRepository: SearchRequestRepository[F],
+                                                                responseRepository: SearchResponseRepository[F],
+                                                                chosenPlacesRepository: ChosenPlacesRepository[F],
                                                                 placesApi: PlacesAPI[F])
   extends PlaceHunterService[F] {
 
-  override def savePlace(chatId: ChatId, msgText: Option[String]): F[Unit] = {
-    PlaceType.parse(msgText)
-      .map(placeType => requestRepository.savePlace(chatId, placeType))
-      .getOrElse(PlaceTypeIsIncorrect(chatId).raiseError[F, Unit])
+  override def savePlace(chatId: ChatId, placeType: PlaceType): F[Unit] = {
+    requestRepository.savePlace(chatId, placeType)
   }
 
-  override def searchForPlaces(chatId: ChatId, location: Location): F[SearchResponse] = {
+  override def searchForPlaces(chatId: ChatId, location: Location): F[Response] = {
     for {
       searchRequestOpt <- requestRepository.saveLocation(chatId, location)
       searchRequest <- searchRequestOpt.liftTo[F](SearchRecordIsMissing(chatId))
       placesRequest <- SearchPlacesRequest.of(searchRequest).leftMap(m => ParseError(m)).liftTo[F]
       response <- placesApi.explorePlaces(placesRequest)
-      _ <- requestRepository.clearRequest(chatId)
-    } yield response.sortedByRating
+      sortedResponse = response.sortedByRating
+      _ <- responseRepository.saveSearchResponse(chatId, sortedResponse)
+    } yield {
+      Response(sortedResponse.copy(
+        results = sortedResponse.results.take(Util.numberOfReplies)),
+        calculateButtons(sortedResponse, searchRequest).take(Util.numberOfReplies),
+        sortedResponse.results.size
+      )
+    }
   }
 
-  override def saveDistance(chatId: ChatId, msgText: Option[String]): F[Unit] = {
-    Distance.parse(msgText).map { radius =>
-      for {
-        searchReqOpt <- requestRepository.saveDistance(chatId, radius)
-        _ <- searchReqOpt.liftTo[F](SearchRecordIsMissing(chatId))
-      } yield ()
-    }.getOrElse(DistanceIsIncorrect(chatId).raiseError[F, Unit])
+  override def saveDistance(chatId: ChatId, radius: Double): F[Unit] = {
+    for {
+      searchReqOpt <- requestRepository.saveDistance(chatId, radius)
+      _ <- searchReqOpt.liftTo[F](SearchRecordIsMissing(chatId))
+    } yield ()
   }
+
+  override def stopSearch(chatId: ChatId, likes: Option[Int]): F[Option[Result]] = {
+    (for {
+      likeIndex <- OptionT.fromOption(likes)
+      loadedResponse <- OptionT(responseRepository.loadResult(chatId, likeIndex))
+      result <- OptionT.fromOption(loadedResponse.results.headOption)
+      _ <- OptionT.liftF(chosenPlacesRepository.savePlace(chatId, result))
+      _ <- OptionT.liftF(clearStorage(chatId))
+    } yield result).value
+  }
+
+  override def clearStorage(chatId: ChatId): F[Unit] =
+    (responseRepository.clearResponse(chatId), requestRepository.clearRequest(chatId)).mapN((_, _) => ())
+
+  override def searchForPlaces(chatId: ChatId, from: Int, until: Int): F[Option[Response]] =
+    for {
+      responses <- responseRepository.loadResponse(chatId, from, until)
+      request <- requestRepository.loadRequest(chatId)
+    } yield {
+      import cats.instances.option._
+      (responses, request).mapN { case ((response, size), request) =>
+        val buttons = calculateButtons(response, request, from)
+        Response(response, buttons, size)
+      }
+    }
+
+  private def calculateButtons(searchResponse: SearchResponse, searchRequest: SearchRequest, from: Int = 0) = {
+    searchResponse.results.zipWithIndex.map {
+      case (result, idx) =>
+        (idx + 1 + from, GooglePlacesAPI.linkToRoute(searchRequest.location.get, result.geometry.location, result.placeId))
+    }
+  }
+
+  override def loadChosenPlaces(chatId: ChatId): F[List[Result]] =
+    chosenPlacesRepository.loadPlaces(chatId)
 }

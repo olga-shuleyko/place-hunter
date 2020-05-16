@@ -9,7 +9,7 @@ import model.GooglePlacesResponseModel.{OpeningHours, SearchResponse}
 import model.GooglePlacesResponseModel.Status.OK
 import util.Instances._
 
-class Ratings extends AnyFlatSpec with Matchers with OptionValues with EitherValues {
+class RatingsSpec extends AnyFlatSpec with Matchers with OptionValues with EitherValues {
 
   "Result" should "extract rating" in {
     googleResultObject should be('right)

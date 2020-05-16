@@ -1,6 +1,7 @@
 package model
 
 import cats.Show
+import util.GooglePlacesAPI._
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.extras._
 import io.circe.generic.extras.semiauto._
@@ -53,15 +54,14 @@ object GooglePlacesResponseModel {
   }
 
   final case class Result(geometry: Geometry,
-                          id: String,
+                          id: Option[String],
                           name: String,
                           placeId: String,
                           openingHours: Option[OpeningHours],
                           priceLevel: Option[Int],
                           rating: Option[Double],
-                          types: List[String],
                           userRatingsTotal: Option[Int],
-                          vicinity: String) {
+                          vicinity: Option[String]) {
 
     val extractRating: Option[(Double, Int)] =
       for {
@@ -83,31 +83,36 @@ object GooglePlacesResponseModel {
     implicit val showResult: Show[Result] = Show.show { res =>
       val rating = res.rating.getOrElse(without) + star
       val review = res.userRatingsTotal.getOrElse(0) + reviews
+      val address = res.vicinity.getOrElse("")
       val priceLevel = res.priceLevel.fold("")(value => money * value)
       val isOpened = res.openingHours.fold("")(value => if (value.openNow) placeIsOpen else placeIsClosed)
-      s"""|*${res.name}* $rating($review)$priceLevel
-          |_${res.vicinity}${isOpened}_
-          |""".stripMargin
-    }
+      val link = linkToPlace(res.placeId, res.name)
+    s"""|[${res.name}]($link) $rating($review) $priceLevel
+        |_${address}${isOpened}_
+        |""".stripMargin}
   }
 
   final case class SearchResponse(status: Status, results: List[Result], nextPageToken: Option[String] = None) {
     def sortedByRating: SearchResponse = this.copy(results = this.results.sortBy(_.coefficient)(OptionDoubleOrdering))
   }
 
+  final case class FromIndex(value: Int) extends AnyVal
+
   object SearchResponse {
     implicit val SearchResponseDecoder: Decoder[SearchResponse] = deriveDecoder[SearchResponse]
     implicit val SearchResponseEncoder: Encoder[SearchResponse] = deriveEncoder[SearchResponse]
 
-    implicit val showSearchResponse: Show[SearchResponse] = Show.show { response =>
+    implicit def showSearchResponse(implicit from: FromIndex): Show[SearchResponse] = Show.show { response =>
       "\n" +
         response
           .results
           .zipWithIndex
-          .map { case (entry, idx) => s"${idx + 1}. ${entry.show}\n" }
+          .map { case (entry, idx) => s"${idx + 1 + from.value}. ${entry.show}\n" }
           .mkString
     }
   }
+
+  final case class Response(searchResponse: SearchResponse, buttons: List[(Int, String)], size: Int)
 
   private val placeIsOpen = "\nOpen now"
   private val placeIsClosed = "\nClosed now"

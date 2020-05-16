@@ -1,13 +1,13 @@
 package repositories
 
-import cats.MonadError
+import cats.Monad
 import cats.effect.concurrent.Ref
 import cats.syntax.option._
 import cats.syntax.functor._
 import com.bot4s.telegram.models.Location
 import model.{ChatId, PlaceType, SearchRequest}
 
-class InMemorySearchRepository[F[_] : MonadError[*[_], Throwable]](val requests: Ref[F, Map[ChatId, SearchRequest]])
+class InMemorySearchRepository[F[_]: Monad](val requests: Ref[F, Map[ChatId, SearchRequest]])
   extends SearchRequestRepository[F] {
 
   override def clearRequest(chatId: ChatId): F[Unit] = requests.update(map => map - chatId)
