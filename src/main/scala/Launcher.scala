@@ -1,5 +1,5 @@
 import bot.PlaceHunterBot
-import cats.effect.{ConcurrentEffect, ContextShift, ExitCode, IO, IOApp, Sync}
+import cats.effect.{ConcurrentEffect, ContextShift, ExitCode, IO, IOApp}
 import cats.syntax.flatMap._
 import cats.syntax.functor._
 import doobie.hikari.HikariTransactor
@@ -9,8 +9,8 @@ import org.http4s.client.Client
 object Launcher extends IOApp {
 
   override def run(args: List[String]): IO[ExitCode] =
-    BotModule.createClient[IO]().use { client =>
-      BotModule.createTransactor[IO]().use {transactor =>
+    BotModule.createServer[IO]().flatMap(_ => BotModule.createClient[IO]()).use { client =>
+      BotModule.createTransactor[IO]().use { transactor =>
         for {
           bot <- bot[IO](client, transactor)
           _ <- bot.startPolling
