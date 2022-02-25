@@ -1,6 +1,6 @@
 import bot.PlaceHunterBot
 import cats.effect.concurrent.Ref
-import cats.effect.{Async, ConcurrentEffect, ContextShift, Resource, Sync}
+import cats.effect.{Async, ConcurrentEffect, ContextShift, Resource, Sync, Timer}
 import cats.syntax.flatMap._
 import cats.syntax.functor._
 import cats.syntax.applicative._
@@ -15,9 +15,12 @@ import model.GooglePlacesResponseModel.SearchResponse
 import model.{ChatId, JdbcConfig, SearchRequest}
 import org.http4s.client.Client
 import org.http4s.client.blaze.BlazeClientBuilder
+import org.http4s.server.blaze.BlazeServerBuilder
 import places.api.GooglePlacesApi
 import repositories.{DoobieChosenPlacesRepository, DoobieSchemaManager, InMemorySearchRepository, InMemorySearchResponseRepository}
 import services.PlaceHunterServiceImpl
+
+import scala.util.Try
 
 class BotModule[F[_]: ConcurrentEffect: ContextShift](token: BotToken,
                                                       httpClient: Client[F],
@@ -88,6 +91,21 @@ object BotModule {
 
   def createClient[F[_] : ConcurrentEffect](): Resource[F, Client[F]] =
     BlazeClientBuilder[F](scala.concurrent.ExecutionContext.global).resource
+
+  private val DefaultHost = "0.0.0.0"
+  private val DefaultPort = 80
+
+  def createServer[F[_]: ConcurrentEffect: Timer]() =
+    for {
+      portStr <- Resource.liftF(Sync[F].delay(System.getenv("PORT")))
+      appHostNullable <- Resource.liftF(Sync[F].delay(System.getenv("APP_HOST")))
+      appHost  = Option(appHostNullable).getOrElse(DefaultHost)
+      portInt = Option(portStr).flatMap(portStr => Try {portStr.toInt}.toOption).getOrElse(DefaultPort)
+      _ <- BlazeServerBuilder[F]
+        .bindHttp(portInt, appHost)
+        // .withHttpApp(finalHttpApp)
+        .resource
+    } yield ()
 
   def readEnvironmentVariable[F[_] : Sync](envVar: String): F[String] =
     for {
