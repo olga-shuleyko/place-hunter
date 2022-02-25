@@ -22,7 +22,7 @@ class DoobieChosenPlacesRepository[F[_]: Sync](tx: Transactor[F]) extends Chosen
     sql"""
          |INSERT INTO chosen_place (place_id, place_name, lat, lng)
          |VALUES (${place.placeId}, ${place.name}, ${place.geometry.location.lat}, ${place.geometry.location.lng})
-         |ON DUPLICATE KEY UPDATE
+         |ON CONFLICT (place_id) DO UPDATE SET
          |place_name=${place.name}, lat=${place.geometry.location.lat}, lng=${place.geometry.location.lng};
          |""".stripMargin
 
