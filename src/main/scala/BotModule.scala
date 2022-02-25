@@ -64,7 +64,7 @@ object BotModule {
           url = config.getString("url"),
           username = config.getString("user"),
           password = config.getString("password"),
-          driver = "com.mysql.cj.jdbc.Driver",
+          driver = "org.postgresql.ds.PGSimpleDataSource",
           poolSize = config.getInt("poolSize")
         )
       }

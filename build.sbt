@@ -18,6 +18,7 @@ val http4sVersion = "0.20.21"
 val circeVersion = "0.11.1"
 val doobieVersion = "0.7.1"
 val mysqlConnector = "8.0.20"
+val postgres = "42.2.16"
 
 enablePlugins(JavaAppPackaging)
 
@@ -42,9 +43,11 @@ libraryDependencies ++= Seq(
   "io.chrisdavenport" %% "log4cats-core" % "1.0.1",
   "io.chrisdavenport" %% "log4cats-slf4j" % "1.0.1",
   "mysql" % "mysql-connector-java" % mysqlConnector,
+  "org.postgresql" % "postgresql" % postgres,
   "org.tpolecat" %% "doobie-core" % doobieVersion,
   "org.tpolecat" %% "doobie-hikari" % doobieVersion,
   "com.typesafe" % "config" % "1.4.0",
   "org.scalatest" %% "scalatest" % "3.1.1" % Test,
   "org.scalamock" %% "scalamock" % "4.4.0" % Test,
 )
+
