@@ -19,6 +19,8 @@ val circeVersion = "0.11.1"
 val doobieVersion = "0.7.1"
 val mysqlConnector = "8.0.20"
 
+enablePlugins(JavaAppPackaging)
+
 resolvers += Resolver.sonatypeRepo("releases")
 
 libraryDependencies ++= Seq(
