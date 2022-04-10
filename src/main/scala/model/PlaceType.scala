@@ -75,9 +75,9 @@ object PlaceType {
   }
 
   final object Supermarket extends PlaceType {
-    override val name: String = "Grocery\uD83C\uDF4E"
+    override val name: String = "Supermarket\uD83D\uDED2"
 
-    override def category: String = "grocery_or_supermarket"
+    override def category: String = "supermarket"
   }
 
   final object Zoo extends PlaceType {
@@ -92,10 +92,10 @@ object PlaceType {
     override def category: String = "pharmacy"
   }
 
-  final object TouristAttraction extends PlaceType {
-    override val name: String = "Tourism\uD83C\uDF8E"
+  final object HairCare extends PlaceType {
+    override val name: String = "Hair\uD83D\uDC87\u200D️"
 
-    override def category: String = "tourist_attraction"
+    override def category: String = "hair_care"
   }
 
   final object CarRental extends PlaceType {
@@ -117,7 +117,7 @@ object PlaceType {
   }
 
   val places = List(Restaurant, Cafe, Bar, Gym, Atm, Bank, SubwayStation, TrainStation, Museum,
-    BookStore, Supermarket, Doctor, Pharmacy, Zoo, TouristAttraction, CarRental, GasStation, Cinema)
+    BookStore, Supermarket, HairCare, Pharmacy, Zoo, Doctor, CarRental, GasStation, Cinema)
 
   private val mapPlaces = places.map(place => place.name -> place).toMap
 
